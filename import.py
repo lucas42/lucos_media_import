@@ -2,11 +2,17 @@
 
 import os, sys
 import requests, taglib, acoustid, json
-if len(sys.argv) < 3:
-	exit("Usage: "+sys.argv[0]+" [media directory path] [track url prefix] [media API url]")
-dirpath = sys.argv[1]
-mediaprefix = sys.argv[2]
-apiurl = sys.argv[3]
+
+if not os.environ.get("MEDIA_DIRECTORY"):
+	sys.exit("\033[91mMEDIA_DIRECTORY not set\033[0m")
+dirpath = os.environ.get("MEDIA_DIRECTORY")
+if not os.environ.get("MEDIA_PREFIX"):
+	sys.exit("\033[91mMEDIA_PREFIX not set\033[0m")
+mediaprefix = os.environ.get("MEDIA_PREFIX")
+if not os.environ.get("MEDIA_API"):
+	sys.exit("\033[91mMEDIA_API not set\033[0m")
+apiurl = os.environ.get("MEDIA_API")
+
 verbose = False
 
 for root, dirs, files in os.walk(dirpath):
