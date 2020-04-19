@@ -20,12 +20,16 @@ for root, dirs, files in os.walk(dirpath):
 		try:
 			path = os.path.join(root, name)
 			trackurl = mediaprefix + path
-			song = taglib.File(path)
+			filemetadata = taglib.File(path)
 			tags = {}
-			for key in song.tags:
-				if len(song.tags[key]) < 1:
+			for key, values in filemetadata.tags.items():
+				if len(values) < 1:
 					continue
-				tags[key.lower()] = song.tags[key][0]
+				key = key.lower()
+				value = " & ".join(values)
+				if key not in ["name", "album", "artist", "year", "genre"]:
+					continue
+				tags[key] = value
 
 			duration, fingerprint = acoustid.fingerprint_file(path, maxlength=60)
 			if verbose:
@@ -35,14 +39,26 @@ for root, dirs, files in os.walk(dirpath):
 			trackdata = {
 				"url": trackurl,
 				"duration": int(duration),
-				"tags": tags,
 			}
-			result = requests.put(apiurl+"/tracks?fingerprint="+fingerprint.decode('UTF-8'), data=json.dumps(trackdata), allow_redirects=False, headers={"If-None-Match": "*"})
-			if result.ok:
+			trackresult = requests.put(apiurl+"/tracks?fingerprint="+fingerprint.decode('UTF-8'), data=json.dumps(trackdata), allow_redirects=False, headers={"If-None-Match": "*"})
+			if trackresult.ok:
 				if verbose:
-					print ("\033[92mTrack Updated: " +  result.text + "\033[0m")
+					print ("\033[92mTrack Updated: " +  trackresult.text + "\033[0m")
+				trackid = trackresult.json()["trackid"]
+				for key, value in tags.items():
+					if verbose:
+						print("Tag:", trackid, key, json.dumps(value))
+					tagresult = requests.put(apiurl+"/tags/"+str(trackid)+"/"+key, data=value, allow_redirects=False, headers={"If-None-Match": "*"})
+					if tagresult.ok:
+						if verbose:
+							print ("\033[92mTag Updated: " +  tagresult.text + "\033[0m")
+					else:
+						print ("\033[91m** Error ** HTTP Status code "+str(tagresult.status_code)+" returned by API: " +  tagresult.text + "\033[0m")
 			else:
-				print ("\033[91m** Error ** HTTP Status code "+str(result.status_code)+" returned by API: " +  result.text + "\033[0m")
+				print ("\033[91m** Error ** HTTP Status code "+str(trackresult.status_code)+" returned by API: " +  trackresult.text + "\033[0m")
+
 		except OSError as error:
 			if verbose:
-				print (error, file=sys.stderr)
+				print(error, file=sys.stderr)
+		except Exception as error:
+			print (type(error).__name__, error, file=sys.stderr)
