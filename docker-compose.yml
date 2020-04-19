@@ -1,0 +1,20 @@
+version: '3'
+services:
+    media_importer:
+      build: .
+      container_name: lucos_media_import
+      volumes:
+        - "media:/medlib/import"
+      environment:
+        - MEDIA_API
+        - MEDIA_DIRECTORY
+        - MEDIA_PREFIX
+      image: lucas42/lucos_media_import
+
+volumes:
+  media:
+    driver: local
+    driver_opts:
+      type: nfs
+      o: "addr=aurora,ro,nolock,hard,intr,retry=3"
+      device: ":/medlib/import"
