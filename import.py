@@ -52,7 +52,7 @@ for root, dirs, files in os.walk(dirpath):
 				for key, value in tags.items():
 					if verbose:
 						print("Tag:", trackid, key, json.dumps(value))
-					tagresult = requests.put(apiurl+"/tags/"+str(trackid)+"/"+key, data=value, allow_redirects=False, headers={"If-None-Match": "*"})
+					tagresult = requests.put(apiurl+"/tags/"+str(trackid)+"/"+key, data=value.encode('utf-8'), allow_redirects=False, headers={"If-None-Match": "*"})
 					if tagresult.ok:
 						if verbose:
 							print ("\033[92mTag Updated: " +  tagresult.text + "\033[0m")
