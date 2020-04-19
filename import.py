@@ -32,6 +32,10 @@ for root, dirs, files in os.walk(dirpath):
 				tags[key] = value
 
 			duration, fingerprint = acoustid.fingerprint_file(path, maxlength=60)
+			if fingerprint.decode('UTF-8') in ["AQAAAA", "AQAAAQkz9UsCAQ"]:
+				if verbose:
+					print("Skipping empty track", trackurl)
+				continue
 			if verbose:
 				print (trackurl, tags, duration, fingerprint.decode('UTF-8'))
 			else:
