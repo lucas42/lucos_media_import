@@ -1,7 +1,7 @@
 #! /usr/local/bin/python3
 
 import os, sys
-import requests, taglib, acoustid, json
+import requests, taglib, acoustid, json, datetime
 
 ## Make sure required environment varibles are set
 if not os.environ.get("MEDIA_DIRECTORY"):
@@ -81,5 +81,12 @@ for root, dirs, files in os.walk(dirpath):
 				print(error, file=sys.stderr)
 		except Exception as error:
 			print (type(error).__name__, error, file=sys.stderr)
+
+# Save the current time as a global in the media API
+summaryresult = requests.put(apiurl+"/globals/last_import", data=datetime.datetime.utcnow().isoformat().encode('utf-8'), allow_redirects=False)
+if summaryresult.ok:
+	print ("\033[92mLast import timestamp updated: " +  summaryresult.text + "\033[0m")
+else:
+	print ("\033[91m** Error ** HTTP Status code "+str(summaryresult.status_code)+" returned by API: " +  summaryresult.text + "\033[0m")
 
 os.remove("import.lock")
