@@ -31,6 +31,10 @@ lockfile.close()
 verbose = False
 
 for root, dirs, files in os.walk(dirpath):
+
+	# Ignore hidden files and directories
+	files = [f for f in files if not f[0] == '.']
+	dirs[:] = [d for d in dirs if not d[0] == '.']
 	for name in files:
 		try:
 			path = os.path.join(root, name)
@@ -80,7 +84,7 @@ for root, dirs, files in os.walk(dirpath):
 			if verbose:
 				print(error, file=sys.stderr)
 		except Exception as error:
-			print (type(error).__name__, error, file=sys.stderr)
+			print ("\033[91m", type(error).__name__, error, name, "\033[0m", file=sys.stderr)
 
 # Save the current time as a global in the media API
 summaryresult = requests.put(apiurl+"/globals/last_import", data=datetime.datetime.utcnow().isoformat().encode('utf-8'), allow_redirects=False)
