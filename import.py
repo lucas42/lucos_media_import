@@ -29,6 +29,7 @@ lockfile.write(str(os.getpid()))
 lockfile.close()
 
 verbose = False
+errorCount = 0
 
 for root, dirs, files in os.walk(dirpath):
 
@@ -77,20 +78,32 @@ for root, dirs, files in os.walk(dirpath):
 							print ("\033[92mTag Updated: " +  tagresult.text + "\033[0m")
 					else:
 						print ("\033[91m** Error ** HTTP Status code "+str(tagresult.status_code)+" returned by API: " +  tagresult.text + "\033[0m")
+						errorCount += 1
 			else:
 				print ("\033[91m** Error ** HTTP Status code "+str(trackresult.status_code)+" returned by API: " +  trackresult.text + "[fingerprint: " + fingerprint.decode('UTF-8') + " ]\033[0m")
+				errorCount += 1
 
 		except OSError as error:
 			if verbose:
 				print(error, file=sys.stderr)
 		except Exception as error:
 			print ("\033[91m", type(error).__name__, error, name, "\033[0m", file=sys.stderr)
+			errorCount += 1
 
 # Save the current time as a global in the media API
-summaryresult = requests.put(apiurl+"/globals/last_import", data=datetime.datetime.utcnow().isoformat().encode('utf-8'), allow_redirects=False)
+summaryresult = requests.put(apiurl+"/globals/latest_import-timestamp", data=datetime.datetime.utcnow().isoformat().encode('utf-8'), allow_redirects=False)
 if summaryresult.ok:
 	print ("\033[92mLast import timestamp updated: " +  summaryresult.text + "\033[0m")
 else:
 	print ("\033[91m** Error ** HTTP Status code "+str(summaryresult.status_code)+" returned by API: " +  summaryresult.text + "\033[0m")
+	errorCount += 1
+
+# Save the number of errors as a global in the media API
+summaryresult = requests.put(apiurl+"/globals/latest_import-errors", data=str(errorCount), allow_redirects=False)
+if summaryresult.ok:
+	print ("\033[92mLast import error count updated: " +  summaryresult.text + "\033[0m")
+else:
+	print ("\033[91m** Error ** HTTP Status code "+str(summaryresult.status_code)+" returned by API: " +  summaryresult.text + "\033[0m")
+	errorCount += 1
 
 os.remove("import.lock")
