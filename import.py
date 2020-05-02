@@ -78,7 +78,7 @@ for root, dirs, files in os.walk(dirpath):
 					else:
 						print ("\033[91m** Error ** HTTP Status code "+str(tagresult.status_code)+" returned by API: " +  tagresult.text + "\033[0m")
 			else:
-				print ("\033[91m** Error ** HTTP Status code "+str(trackresult.status_code)+" returned by API: " +  trackresult.text + "\033[0m")
+				print ("\033[91m** Error ** HTTP Status code "+str(trackresult.status_code)+" returned by API: " +  trackresult.text + "[fingerprint: " + fingerprint.decode('UTF-8') + " ]\033[0m")
 
 		except OSError as error:
 			if verbose:
