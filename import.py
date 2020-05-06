@@ -61,10 +61,10 @@ for root, dirs, files in os.walk(dirpath):
 			else:
 				print (trackurl)
 			trackdata = {
-				"url": trackurl,
+				"fingerprint": fingerprint.decode('UTF-8'),
 				"duration": int(duration),
 			}
-			trackresult = requests.put(apiurl+"/tracks?fingerprint="+fingerprint.decode('UTF-8'), data=json.dumps(trackdata), allow_redirects=False, headers={"If-None-Match": "*"})
+			trackresult = requests.put(apiurl+"/tracks", params={"url": trackurl}, data=json.dumps(trackdata), allow_redirects=False, headers={"If-None-Match": "*"})
 			if trackresult.ok:
 				if verbose:
 					print ("\033[92mTrack Updated: " +  trackresult.text + "\033[0m")
