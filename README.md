@@ -27,6 +27,7 @@ Run `pipenv install` to setup
 
 
 ## Environment Variables
+For local development, these should be stored in a .env file
 
 * _**MEDIA_DIRECTORY**_ The directory in which to look for audio files to import
 * _**MEDIA_PREFIX**_ Added to the start of each track's local path to form the url for that track
