@@ -5,12 +5,12 @@ workflows:
   version: 2
   build-deploy:
     jobs:
-      - lucos/build-amd64:
+      - lucos/build-arm:
           context: docker
-      - lucos/deploy-valen:
+      - lucos/deploy-xwing:
           context: docker
           requires:
-            - lucos/build-amd64
+            - lucos/build-arm
           filters:
             branches:
               only:
