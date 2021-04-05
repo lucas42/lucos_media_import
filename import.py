@@ -46,8 +46,9 @@ for root, dirs, files in os.walk(dirpath):
 
 			# In future, could use urllib.parse.quote for consistency
 			# But for now do specific replacements for backwards-compatibility
-			path = path.replace("#", "%23")
-			trackurl = mediaprefix + path
+			urlpath = path.replace("%", "%25")
+			urlpath = urlpath.replace("#", "%23")
+			trackurl = mediaprefix + urlpath
 			filemetadata = taglib.File(path)
 			tags = {}
 			for key, values in filemetadata.tags.items():
