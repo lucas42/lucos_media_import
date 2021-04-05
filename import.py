@@ -65,6 +65,10 @@ for root, dirs, files in os.walk(dirpath):
 				if verbose:
 					print("Skipping empty track", trackurl)
 				continue
+			if duration < 1:
+				print("\033[91m** Error ** Track with duration less than 1 second ", trackurl, "\033[0m")
+				errorCount += 1
+				continue
 			if verbose:
 				print (trackurl, tags, duration, fingerprint.decode('UTF-8'))
 			else:
