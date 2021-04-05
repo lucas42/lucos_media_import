@@ -43,6 +43,10 @@ for root, dirs, files in os.walk(dirpath):
 	for name in files:
 		try:
 			path = os.path.join(root, name)
+
+			# In future, could use urllib.parse.quote for consistency
+			# But for now do specific replacements for backwards-compatibility
+			path = path.replace("#", "%23")
 			trackurl = mediaprefix + path
 			filemetadata = taglib.File(path)
 			tags = {}
