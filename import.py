@@ -56,7 +56,7 @@ for root, dirs, files in os.walk(dirpath):
 					continue
 				key = key.lower()
 				value = " & ".join(values)
-				if key not in ["name", "album", "artist", "year", "genre"]:
+				if key not in ["title", "album", "artist", "year", "genre", "comment", "lyrics"]:
 					continue
 				tags[key] = value
 
