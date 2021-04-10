@@ -28,7 +28,7 @@ lockfile = open("import.lock", "w")
 lockfile.write(str(os.getpid()))
 lockfile.close()
 
-loganne_result = requests.post("https://loganne.l42.eu/events", json={"source":"lucos_media_import","type":"import","humanReadable":"Scanning for new tracks to include in media library"}, allow_redirects=False)
+loganne_result = requests.post("https://loganne.l42.eu/events", json={"source":"lucos_media_import","type":"import","humanReadable":"Scanning for new tracks to include in media library","dir": dirpath}, allow_redirects=False)
 if not loganne_result:
 	print ("\033[91m** Error ** Call to Loganne failed with "+str(loganne_result.status_code)+" response: " +  loganne_result.text + "\033[0m")
 
