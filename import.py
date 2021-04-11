@@ -92,7 +92,7 @@ for root, dirs, files in os.walk(dirpath):
 				else:
 					log(trackAction + " " + trackurl)
 			else:
-				log("HTTP Status code "+str(trackresult.status_code)+" returned by API: " +  trackresult.text.rstrip() + "[fingerprint: " + fingerprint.decode('UTF-8') + " ]", error=True)
+				log("HTTP Status code "+str(trackresult.status_code)+" returned by API: " +  trackresult.text.rstrip() + " <" + trackurl + ">", error=True)
 				errorCount += 1
 		except OSError as error:
 			log(error, error=True, debug=True)
