@@ -44,6 +44,7 @@ if not loganne_result:
 
 errorCount = 0
 
+log("Starting scan of "+dirpath)
 for root, dirs, files in os.walk(dirpath):
 
 	# Ignore hidden files and directories
@@ -82,11 +83,14 @@ for root, dirs, files in os.walk(dirpath):
 				"duration": int(duration),
 				"tags": tags,
 			}
-			log(trackurl)
-			log(str(trackdata), debug=True)
+			log(trackurl + ", " + str(trackdata), debug=True)
 			trackresult = requests.put(apiurl+"/tracks", params={"url": trackurl}, data=json.dumps(trackdata), allow_redirects=False, headers={"If-None-Match": "*"})
 			if trackresult.ok:
-				log("Track Updated: " +  trackresult.text.rstrip(), debug=True)
+				trackAction = trackresult.headers.get("Track-Action")
+				if (trackAction == "noChange"):
+					log("No change for track " + trackurl, debug=True)
+				else:
+					log(trackAction + " " + trackurl)
 			else:
 				log("HTTP Status code "+str(trackresult.status_code)+" returned by API: " +  trackresult.text.rstrip() + "[fingerprint: " + fingerprint.decode('UTF-8') + " ]", error=True)
 				errorCount += 1
