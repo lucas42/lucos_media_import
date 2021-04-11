@@ -76,22 +76,12 @@ for root, dirs, files in os.walk(dirpath):
 			trackdata = {
 				"fingerprint": fingerprint.decode('UTF-8'),
 				"duration": int(duration),
+				"tags": tags,
 			}
 			trackresult = requests.put(apiurl+"/tracks", params={"url": trackurl}, data=json.dumps(trackdata), allow_redirects=False, headers={"If-None-Match": "*"})
 			if trackresult.ok:
 				if verbose:
 					print ("\033[92mTrack Updated: " +  trackresult.text + "\033[0m")
-				trackid = trackresult.json()["trackid"]
-				for key, value in tags.items():
-					if verbose:
-						print("Tag:", trackid, key, json.dumps(value))
-					tagresult = requests.put(apiurl+"/tags/"+str(trackid)+"/"+key, data=value.encode('utf-8'), allow_redirects=False, headers={"If-None-Match": "*"})
-					if tagresult.ok:
-						if verbose:
-							print ("\033[92mTag Updated: " +  tagresult.text + "\033[0m")
-					else:
-						print ("\033[91m** Error ** HTTP Status code "+str(tagresult.status_code)+" returned by API: " +  tagresult.text + "\033[0m")
-						errorCount += 1
 			else:
 				print ("\033[91m** Error ** HTTP Status code "+str(trackresult.status_code)+" returned by API: " +  trackresult.text + "[fingerprint: " + fingerprint.decode('UTF-8') + " ]\033[0m")
 				errorCount += 1
