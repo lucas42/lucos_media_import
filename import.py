@@ -58,6 +58,7 @@ for root, dirs, files in os.walk(dirpath):
 			# But for now do specific replacements for backwards-compatibility
 			urlpath = path.replace("%", "%25")
 			urlpath = urlpath.replace("#", "%23")
+			urlpath = urlpath.replace("ABCDEFG (2010)", "ABCDEFG%20(2010)") # One particular album by Chumbawumba needs its space url encoded.  Unsure why - no other tracks in the DB have spaces encodes
 			trackurl = mediaprefix + urlpath
 			filemetadata = taglib.File(path)
 			tags = {}
