@@ -1,6 +1,6 @@
 #! /usr/local/bin/python3
 
-import os, sys
+import os, sys, urllib
 import requests, taglib, acoustid, json, datetime
 
 ## Make sure required environment varibles are set
@@ -55,13 +55,7 @@ for root, dirs, files in os.walk(dirpath):
 	for name in files:
 		try:
 			path = os.path.join(root, name)
-
-			# In future, could use urllib.parse.quote for consistency
-			# But for now do specific replacements for backwards-compatibility
-			urlpath = path.replace("%", "%25")
-			urlpath = urlpath.replace("#", "%23")
-			urlpath = urlpath.replace("ABCDEFG (2010)", "ABCDEFG%20(2010)") # One particular album by Chumbawumba needs its space url encoded.  Unsure why - no other tracks in the DB have spaces encodes
-			trackurl = mediaprefix + urlpath
+			trackurl = mediaprefix + urllib.parse.quote(path, safe='/ ')
 			filemetadata = taglib.File(path)
 			tags = {}
 			for key, values in filemetadata.tags.items():
