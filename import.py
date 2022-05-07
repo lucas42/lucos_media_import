@@ -67,6 +67,12 @@ for root, dirs, files in os.walk(dirpath):
 					continue
 				tags[key] = value
 
+			# To begin with, as there's lots of files without an 'added' tag, use last modification date
+			# on the filesystem to estimate when it was added to the media library
+			# In future, the API should add this automatically for any new files (using current datetime)
+			last_modified = datetime.datetime.fromtimestamp(os.path.getmtime(path))
+			tags["added"] = last_modified.isoformat()
+
 			duration, fingerprint = acoustid.fingerprint_file(path, maxlength=60)
 			if fingerprint.decode('UTF-8') in ["AQAAAA", "AQAAAQkz9UsCAQ"]:
 				log("Skipping empty track " + trackurl, debug=True)
