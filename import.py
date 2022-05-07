@@ -14,6 +14,8 @@ if not os.environ.get("MEDIA_API"):
 	sys.exit("\033[91mMEDIA_API not set\033[0m")
 apiurl = os.environ.get("MEDIA_API")
 
+if not os.path.isdir(dirpath):
+	sys.exit("\033[91mMEDIA_DIRECTORY \""+dirpath+"\" is not a directory\033[0m")
 
 ## Make sure only running once at a time, using lockfile
 try:
@@ -80,12 +82,12 @@ for root, dirs, files in os.walk(dirpath):
 				errorCount += 1
 				continue
 			trackdata = {
-				"fingerprint": fingerprint.decode('UTF-8'),
 				"duration": int(duration),
 				"tags": tags,
+				"url": trackurl,
 			}
 			log(trackurl + ", " + str(trackdata), debug=True)
-			trackresult = requests.put(apiurl+"/tracks", params={"url": trackurl}, data=json.dumps(trackdata), allow_redirects=False, headers={"If-None-Match": "*"})
+			trackresult = requests.put(apiurl+"/tracks", params={"fingerprint": fingerprint.decode('UTF-8')}, data=json.dumps(trackdata), allow_redirects=False, headers={"If-None-Match": "*"})
 			if trackresult.ok:
 				trackAction = trackresult.headers.get("Track-Action")
 				if (trackAction == "noChange"):

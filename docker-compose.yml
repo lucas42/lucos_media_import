@@ -4,10 +4,10 @@ services:
       build: .
       container_name: lucos_media_import
       volumes:
-        - "media:/medlib/import"
+        - "media:/medlib/ceol srl"
       environment:
         - MEDIA_API
-        - MEDIA_DIRECTORY
+        - MEDIA_DIRECTORY=/medlib/ceol srl
         - MEDIA_PREFIX
       image: lucas42/lucos_media_import
 
@@ -17,4 +17,4 @@ volumes:
     driver_opts:
       type: nfs
       o: "addr=aurora,ro,nolock,hard,intr,retry=3"
-      device: ":/medlib/import"
+      device: ":/medlib/ceol srl"
