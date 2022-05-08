@@ -73,6 +73,10 @@ for root, dirs, files in os.walk(dirpath):
 			last_modified = datetime.datetime.fromtimestamp(os.path.getmtime(path))
 			tags["added"] = last_modified.isoformat()
 
+			# If there's no title in the ID3 tags, default to filename (ignoring extension)
+			if not hasattr(tags, "title"):
+				tags["title"] = path.split("/")[-1].rsplit(".", 1)[0]
+
 			duration, fingerprint = acoustid.fingerprint_file(path, maxlength=60)
 			if fingerprint.decode('UTF-8') in ["AQAAAA", "AQAAAQkz9UsCAQ"]:
 				log("Skipping empty track " + trackurl, debug=True)
