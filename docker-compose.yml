@@ -7,7 +7,7 @@ services:
         - "media:/medlib/ceol srl"
       environment:
         - MEDIA_API
-        - MEDIA_DIRECTORY=/medlib/ceol srl
+        - MEDIA_DIRECTORY
         - MEDIA_PREFIX
       image: lucas42/lucos_media_import
 
