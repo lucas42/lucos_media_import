@@ -30,7 +30,7 @@ lockfile = open("import.lock", "w")
 lockfile.write(str(os.getpid()))
 lockfile.close()
 
-verbose = True
+verbose = False
 
 def log(message, error=False, debug=False):
 	if (debug and not verbose):
