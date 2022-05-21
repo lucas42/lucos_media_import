@@ -79,7 +79,7 @@ for root, dirs, files in os.walk(dirpath):
 
 			duration, fingerprint = acoustid.fingerprint_file(path, maxlength=60)
 			if fingerprint.decode('UTF-8') in ["AQAAAA", "AQAAAQkz9UsCAQ"]:
-				log("Skipping empty track " + trackurl, debug=True)
+				log("Skipping empty track " + trackurl, error=True)
 				continue
 			if duration < 1:
 				log("Track with duration less than 1 second " + trackurl, error=True)
