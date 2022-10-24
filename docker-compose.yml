@@ -10,6 +10,7 @@ services:
         - MEDIA_DIRECTORY=/medlib/ceol srl
         - MEDIA_PREFIX
       image: lucas42/lucos_media_import
+      restart: always
 
 volumes:
   media:
