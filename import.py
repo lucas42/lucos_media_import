@@ -74,7 +74,7 @@ for root, dirs, files in os.walk(dirpath):
 			tags["added"] = last_modified.isoformat()
 
 			# If there's no title in the ID3 tags, default to filename (ignoring extension)
-			if not hasattr(tags, "title"):
+			if "title" not in tags:
 				tags["title"] = path.split("/")[-1].rsplit(".", 1)[0]
 
 			duration, fingerprint = acoustid.fingerprint_file(path, maxlength=60)
