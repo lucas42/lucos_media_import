@@ -91,7 +91,7 @@ for root, dirs, files in os.walk(dirpath):
 				"url": trackurl,
 			}
 			log(fingerprint.decode("UTF-8") + ", " + str(trackdata), debug=True)
-			trackresult = requests.put(apiurl+"/tracks", params={"fingerprint": fingerprint.decode('UTF-8')}, data=json.dumps(trackdata), allow_redirects=False, headers={"If-None-Match": "*"})
+			trackresult = requests.put(apiurl+"/v2/tracks", params={"fingerprint": fingerprint.decode('UTF-8')}, data=json.dumps(trackdata), allow_redirects=False, headers={"If-None-Match": "*"})
 			if trackresult.ok:
 				trackAction = trackresult.headers.get("Track-Action")
 				if (trackAction == "noChange"):
