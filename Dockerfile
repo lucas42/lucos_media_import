@@ -9,6 +9,6 @@ COPY cron.sh .
 
 COPY Pipfile* ./
 RUN pipenv install
-COPY import.py .
+COPY *.py .
 
 CMD [ "./cron.sh"]

@@ -2,6 +2,7 @@
 
 import os, sys, urllib
 import requests, taglib, acoustid, json, datetime
+from schedule_tracker import updateScheduleTracker
 
 ## Make sure required environment varibles are set
 if not os.environ.get("MEDIA_DIRECTORY"):
@@ -122,5 +123,7 @@ if summaryresult.ok:
 else:
 	log("HTTP Status code "+str(summaryresult.status_code)+" returned by API: " +  summaryresult.text.rstrip(), error=True)
 	errorCount += 1
+
+updateScheduleTracker(success=(errorCount == 0), message="Import encountered "+errorCount+" errors")
 
 os.remove("import.lock")
