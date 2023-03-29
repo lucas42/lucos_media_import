@@ -108,22 +108,6 @@ for root, dirs, files in os.walk(dirpath):
 			log(type(error).__name__ + " " + str(error) + " " + name, error=True)
 			errorCount += 1
 
-# Save the current time as a global in the media API
-summaryresult = requests.put(apiurl+"/globals/latest_import-timestamp", data=datetime.datetime.utcnow().isoformat().encode('utf-8'), allow_redirects=False)
-if summaryresult.ok:
-	log("Last import timestamp updated: " +  summaryresult.text.rstrip())
-else:
-	log("HTTP Status code "+str(summaryresult.status_code)+" returned by API: " +  summaryresult.text.rstrip(), error=True)
-	errorCount += 1
-
-# Save the number of errors as a global in the media API
-summaryresult = requests.put(apiurl+"/globals/latest_import-errors", data=str(errorCount), allow_redirects=False)
-if summaryresult.ok:
-	log("Last import error count updated: " +  summaryresult.text.rstrip())
-else:
-	log("HTTP Status code "+str(summaryresult.status_code)+" returned by API: " +  summaryresult.text.rstrip(), error=True)
-	errorCount += 1
-
 updateScheduleTracker(success=(errorCount == 0), message="Import encountered "+errorCount+" errors")
 
 os.remove("import.lock")
