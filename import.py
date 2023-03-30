@@ -108,6 +108,6 @@ for root, dirs, files in os.walk(dirpath):
 			log(type(error).__name__ + " " + str(error) + " " + name, error=True)
 			errorCount += 1
 
-updateScheduleTracker(success=(errorCount == 0), message="Import encountered "+errorCount+" errors")
+updateScheduleTracker(success=(errorCount == 0), message="Import encountered "+str(errorCount)+" errors")
 
 os.remove("import.lock")
