@@ -1,24 +1,14 @@
 import os, sys, urllib
-import requests, taglib, acoustid, json, datetime
+import taglib, acoustid, datetime
+from media_api import insertTrack
 
 
 ## Make sure required environment varibles are set
 if not os.environ.get("MEDIA_PREFIX"):
 	sys.exit("\033[91mMEDIA_PREFIX not set\033[0m")
 mediaprefix = os.environ.get("MEDIA_PREFIX")
-if not os.environ.get("MEDIA_API"):
-	sys.exit("\033[91mMEDIA_API not set\033[0m")
-apiurl = os.environ.get("MEDIA_API")
 
 verbose = False
-
-def log(message, error=False, debug=False):
-	if (debug and not verbose):
-		return
-	if error:
-		print("\033[91m** Error ** "+str(message)+"\033[0m", file=sys.stderr)
-	else:
-		print ("\033[92m"+str(message)+"\033[0m")
 
 def scan_file(path):
 	try:
@@ -46,29 +36,18 @@ def scan_file(path):
 
 		duration, fingerprint = acoustid.fingerprint_file(path, maxlength=60)
 		if fingerprint.decode('UTF-8') in ["AQAAAA", "AQAAAQkz9UsCAQ"]:
-			log("Skipping empty track " + trackurl, error=True)
-			return
+			raise Exception("Empty Track")
 		if duration < 1:
-			log("Track with duration less than 1 second " + trackurl, error=True)
 			raise Exception("Track with duration less than 1 second")
 		trackdata = {
 			"duration": int(duration),
 			"tags": tags,
 			"url": trackurl,
 		}
-		log(fingerprint.decode("UTF-8") + ", " + str(trackdata), debug=True)
-		trackresult = requests.put(apiurl+"/v2/tracks", params={"fingerprint": fingerprint.decode('UTF-8')}, data=json.dumps(trackdata), allow_redirects=False, headers={"If-None-Match": "*"})
-		if trackresult.ok:
-			trackAction = trackresult.headers.get("Track-Action")
-			if (trackAction == "noChange"):
-				log("No change for track " + trackurl, debug=True)
-			else:
-				log(trackAction + " " + trackurl)
-		else:
-			log("HTTP Status code "+str(trackresult.status_code)+" returned by API: " +  trackresult.text.rstrip() + " <" + trackurl + ">", error=True)
-			errorCount += 1
-	except OSError as error:
-		log(error, error=True, debug=True)
+		return (fingerprint, trackdata)
 	except Exception as error:
-		log(type(error).__name__ + " " + str(error) + " " + name, error=True)
 		raise error
+
+def scan_insert_file(path):
+	(fingerprint, trackdata) = scan_file(path)
+	insertTrack(fingerprint, trackdata)

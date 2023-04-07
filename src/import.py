@@ -1,7 +1,7 @@
 #! /usr/local/bin/python3
 
 import os, sys
-from logic import scan_file
+from logic import scan_insert_file
 from loganne import loganneRequest
 from schedule_tracker import updateScheduleTracker
 
@@ -46,8 +46,9 @@ for root, dirs, files in os.walk(dirpath):
 	for name in files:
 		try:
 			path = os.path.join(root, name)
-			scan_file(path)
-		except:
+			scan_insert_file(path)
+		except Exception as error:
+			print("\033[91m"+type(error).__name__ + " " + str(error) + " " + path + "\033[0m")
 			errorCount += 1
 
 updateScheduleTracker(success=(errorCount == 0), message="Import encountered "+str(errorCount)+" errors")
