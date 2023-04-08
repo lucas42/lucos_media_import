@@ -8,8 +8,11 @@ jobs:
     steps:
       - checkout
       - run:
+          name: Update package registry
+          command: sudo apt-get update
+      - run:
           name: Install Chompaprint Dependencies
-          command: sudo apt-get update && apt-get install -y libtag1-dev libchromaprint-tools ffmpeg
+          command: sudo apt-get install -y libtag1-dev libchromaprint-tools ffmpeg
       - run:
           name: Install App Dependencies
           command: pipenv install
