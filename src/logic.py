@@ -28,6 +28,10 @@ def scan_file(path):
 		if "title" not in tags:
 			tags["title"] = path.split("/")[-1].rsplit(".", 1)[0]
 
+		# Many tracks from compilation albums are tagged with an artist of "Various" - this is really unhelpful in a library context, so ignore this tag
+		if "artist" in tags and tags["artist"] == "Various":
+			del tags["artist"]
+
 		duration, fingerprint = acoustid.fingerprint_file(path, maxlength=60)
 		if fingerprint.decode('UTF-8') in ["AQAAAA", "AQAAAQkz9UsCAQ"]:
 			raise Exception("Empty Track")

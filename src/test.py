@@ -42,6 +42,18 @@ testcases = [
 			'url': "http://example.org/media_library/test_tracks/No Title.mp3",
 		}
 	},
+	{
+		'comment': "An artists of 'Various' is ignored",
+		'path': "test_tracks/Various Artists.mp3",
+		'expected_data': {
+			'duration': 3,
+			'tags': {
+				'title': 'Testing Artists',
+				'album': 'Compilations',
+			},
+			'url': "http://example.org/media_library/test_tracks/Various Artists.mp3",
+		}
+	},
 ]
 failures = 0
 
