@@ -1,5 +1,5 @@
 #! /usr/local/bin/python3
-import os, datetime
+import os
 
 # Set the media prefix to a known value for testing
 os.environ["MEDIA_PREFIX"] = "http://example.org/media_library/"
@@ -16,7 +16,6 @@ testcases = [
 			'tags': {
 				'title': 'A Testing Day',
 				'artist': 'Computerface',
-				'added': '2023-04-08T11:00:31.234752',
 			},
 			'url': "http://example.org/media_library/test_tracks/A Testing Day.mp3",
 		}
@@ -39,7 +38,6 @@ testcases = [
 			'tags': {
 				'title': 'No Title',
 				'artist': 'Computerface',
-				'added': '2023-04-08T11:55:01.620345',
 			},
 			'url': "http://example.org/media_library/test_tracks/No Title.mp3",
 		}

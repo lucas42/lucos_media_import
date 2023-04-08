@@ -1,5 +1,5 @@
 import os, sys, urllib
-import taglib, acoustid, datetime
+import taglib, acoustid
 from media_api import insertTrack
 
 
@@ -23,12 +23,6 @@ def scan_file(path):
 			if key not in ["title", "album", "artist", "year", "genre", "comment", "lyrics"]:
 				continue
 			tags[key] = value
-
-		# To begin with, as there's lots of files without an 'added' tag, use last modification date
-		# on the filesystem to estimate when it was added to the media library
-		# In future, the API should add this automatically for any new files (using current datetime)
-		last_modified = datetime.datetime.fromtimestamp(os.path.getmtime(path))
-		tags["added"] = last_modified.isoformat()
 
 		# If there's no title in the ID3 tags, default to filename (ignoring extension)
 		if "title" not in tags:
