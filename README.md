@@ -31,6 +31,11 @@ Run `pipenv install` to setup
 
 `pipenv run python import.py`
 
+## Testing
+
+Doesn't use a proper testing framework.  However, run
+`pipenv run python src/test.py`
+which will check various calls to the scan_file() function, relying on files in the `test_tracks` directory
 
 ## Environment Variables
 For local development, these should be stored in a .env file
@@ -45,4 +50,6 @@ For local development, these should be stored in a .env file
 * `src` directory holds the python source code
   - `logic.py` holds the logic for evaluating an audio track on the filesystem and adding an appropriate entry in the metadata API.
   - `import.py` is script which iterates through all files in the _MEDIA_DIRECTORY_ and imports them to the API.
+  - `test.py` does some simple checks on the logic in `src/logic.py`.
 * `startup.sh` ensures the cron daemon is running with the right environment set up and sharing its logs in a way that get surfaced to Docker
+* `test_tracks` a collection of audio tracks used for testing.  Not included in the final docker image
