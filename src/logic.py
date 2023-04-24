@@ -13,7 +13,10 @@ verbose = False
 def scan_file(path):
 	try:
 		trackurl = mediaprefix + urllib.parse.quote(path, safe='/ ')
-		filemetadata = taglib.File(path)
+		try:
+			filemetadata = taglib.File(path)
+		except OSError:
+			return (None, None)
 		tags = {}
 		for key, values in filemetadata.tags.items():
 			if len(values) < 1:
@@ -33,6 +36,7 @@ def scan_file(path):
 			del tags["artist"]
 
 		duration, fingerprint = acoustid.fingerprint_file(path, maxlength=60)
+
 		if fingerprint.decode('UTF-8') in ["AQAAAA", "AQAAAQkz9UsCAQ"]:
 			raise Exception("Empty Track")
 		if duration < 1:
@@ -48,4 +52,6 @@ def scan_file(path):
 
 def scan_insert_file(path):
 	(fingerprint, trackdata) = scan_file(path)
+	if trackdata is None:
+		return
 	insertTrack(fingerprint, trackdata)

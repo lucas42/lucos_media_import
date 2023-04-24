@@ -54,6 +54,11 @@ testcases = [
 			'url': "http://example.org/media_library/test_tracks/Various Artists.mp3",
 		}
 	},
+	{
+		'comment': "A non-audio file returns None",
+		'path': "test_tracks/lockdown-compositions.jpg",
+		'expected_data': None,
+	},
 ]
 failures = 0
 
