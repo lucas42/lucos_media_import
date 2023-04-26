@@ -8,6 +8,11 @@ if (apiurl.endswith("/")):
 
 verbose = False
 
+session = requests.Session()
+retries = requests.adapters.Retry(total=5, backoff_factor=1, status_forcelist=[500, 502, 503, 504])
+adapter = requests.adapters.HTTPAdapter(max_retries=retries)
+session.mount(apiurl, adapter)
+
 def log(message, error=False, debug=False):
 	if (debug and not verbose):
 		return
@@ -18,7 +23,7 @@ def log(message, error=False, debug=False):
 
 def insertTrack(fingerprint, trackdata):
 	log(fingerprint.decode("UTF-8") + ", " + str(trackdata), debug=True)
-	trackresult = requests.put(apiurl+"/v2/tracks", params={"fingerprint": fingerprint.decode('UTF-8')}, data=json.dumps(trackdata), allow_redirects=False, headers={"If-None-Match": "*"})
+	trackresult = session.put(apiurl+"/v2/tracks", params={"fingerprint": fingerprint.decode('UTF-8')}, data=json.dumps(trackdata), allow_redirects=False, headers={"If-None-Match": "*"})
 	if trackresult.ok:
 		trackAction = trackresult.headers.get("Track-Action")
 		if (trackAction == "noChange"):
