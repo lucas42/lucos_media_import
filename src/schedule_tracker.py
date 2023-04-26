@@ -1,10 +1,10 @@
 import json, requests
 
 # Inform the schedule tracker that the job is complete
-def updateScheduleTracker(success=True, message=None, system="lucos_media_import"):
+def updateScheduleTracker(success=True, message=None, system="lucos_media_import", frequency=1):
 	payload = {
 		"system": system,
-		"frequency": 7 * 24 * 60 * 60, # 1 week, in seconds
+		"frequency": frequency,
 		"status": "success" if success else "error",
 		"message": message,
 	}

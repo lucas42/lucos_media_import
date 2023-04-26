@@ -51,6 +51,6 @@ for root, dirs, files in os.walk(dirpath):
 			print("\033[91m"+type(error).__name__ + " " + str(error) + " " + path + "\033[0m")
 			errorCount += 1
 
-updateScheduleTracker(success=(errorCount == 0), message="Import encountered "+str(errorCount)+" errors")
+updateScheduleTracker(success=(errorCount == 0), message="Import encountered "+str(errorCount)+" errors", frequency=(7 * 24 * 60 * 60))
 
 os.remove("import.lock")

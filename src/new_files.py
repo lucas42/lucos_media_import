@@ -53,6 +53,6 @@ for root, dirs, files in os.walk(dirpath):
 			print("\033[91m"+type(error).__name__ + " " + str(error) + " " + name + "\033[0m")
 			errorCount += 1
 
-updateScheduleTracker(success=(errorCount == 0), message="New files import encountered "+str(errorCount)+" errors", system="lucos_media_import_new_files")
+updateScheduleTracker(success=(errorCount == 0), message="New files import encountered "+str(errorCount)+" errors", system="lucos_media_import_new_files", frequency=60
 
 os.remove("new_files.lock")
