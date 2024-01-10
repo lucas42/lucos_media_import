@@ -3,7 +3,7 @@ FROM python:3.12-alpine
 WORKDIR /usr/src/app
 
 #RUN apt-get update && apt-get install -y pipenv libtag1-dev libchromaprint-tools ffmpeg cron
-RUN apk add taglib-dev chromaprint ffmpeg
+RUN apk add taglib-dev chromaprint ffmpeg gcc
 RUN pip install pipenv
 # Default version of sed in alpine isn't the full GNU one, so install that
 RUN apk add sed
