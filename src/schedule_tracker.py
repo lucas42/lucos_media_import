@@ -9,7 +9,7 @@ def updateScheduleTracker(success=True, message=None, system="lucos_media_import
 		"message": message,
 	}
 	try:
-		schedule_tracker_response = requests.post('https://schedule-tracker.l42.eu/report-statusy', json=payload);
+		schedule_tracker_response = requests.post('https://schedule-tracker.l42.eu/report-status', json=payload);
 		schedule_tracker_response.raise_for_status()
 	except Exception as error:
 		print("\033[91m** Error ** Call to schedule-tracker failed.  "+type(error).__name__ + " " + str(error) + "\033[0m")
