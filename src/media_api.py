@@ -24,11 +24,9 @@ def log(message, error=False, debug=False):
 def insertTrack(fingerprint, trackdata):
 	log(fingerprint.decode("UTF-8") + ", " + str(trackdata), debug=True)
 	trackresult = session.put(apiurl+"/v2/tracks", params={"fingerprint": fingerprint.decode('UTF-8')}, data=json.dumps(trackdata), allow_redirects=False, headers={"If-None-Match": "*"})
-	if trackresult.ok:
-		trackAction = trackresult.headers.get("Track-Action")
-		if (trackAction == "noChange"):
-			log("No change for track " + trackdata["url"], debug=True)
-		else:
-			log(trackAction + " " + trackdata["url"])
+	trackresult.raise_for_status()
+	trackAction = trackresult.headers.get("Track-Action")
+	if (trackAction == "noChange"):
+		log("No change for track " + trackdata["url"], debug=True)
 	else:
-		raise Exception("HTTP Status code "+str(trackresult.status_code)+" returned by API: " +  trackresult.text.rstrip() + " <" + trackdata["url"] + ">")
+		log(trackAction + " " + trackdata["url"])
