@@ -4,6 +4,10 @@ import os
 # Set the media prefix to a known value for testing
 os.environ["MEDIA_PREFIX"] = "http://example.org/media_library/"
 
+# Set MEDIA_API to a broken value to avoid errors for not having it set
+# (Shouldn't actually be called within logic tests)
+os.environ["MEDIA_API"] = "http://localhost:000/null"
+
 # Unit under test
 from logic import scan_file
 
