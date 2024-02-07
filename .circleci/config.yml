@@ -24,10 +24,8 @@ workflows:
   build-deploy:
     jobs:
       - test
-      - lucos/build-arm:
-          context: docker
+      - lucos/build-arm
       - lucos/deploy-xwing:
-          context: docker
           requires:
             - test
             - lucos/build-arm
