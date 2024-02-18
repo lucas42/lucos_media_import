@@ -6,6 +6,10 @@ apiurl = os.environ.get("MEDIA_API")
 if (apiurl.endswith("/")):
 	sys.exit("\033[91mDon't include a trailing slash in the API url\033[0m")
 
+if not os.environ.get("KEY_LUCOS_MEDIA_METADATA_API"):
+	sys.exit("\033[91mKEY_LUCOS_MEDIA_METADATA_API not set\033[0m")
+apiKey = os.environ.get("KEY_LUCOS_MEDIA_METADATA_API")
+
 verbose = False
 
 session = requests.Session()
@@ -23,7 +27,7 @@ def log(message, error=False, debug=False):
 
 def insertTrack(fingerprint, trackdata):
 	log(fingerprint.decode("UTF-8") + ", " + str(trackdata), debug=True)
-	trackresult = session.put(apiurl+"/v2/tracks", params={"fingerprint": fingerprint.decode('UTF-8')}, data=json.dumps(trackdata), allow_redirects=False, headers={"If-None-Match": "*"})
+	trackresult = session.put(apiurl+"/v2/tracks", params={"fingerprint": fingerprint.decode('UTF-8')}, data=json.dumps(trackdata), allow_redirects=False, headers={"If-None-Match": "*", "Authorization":"key "+apiKey})
 	trackresult.raise_for_status()
 	trackAction = trackresult.headers.get("Track-Action")
 	if (trackAction == "noChange"):
