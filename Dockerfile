@@ -2,7 +2,10 @@ FROM python:3.10
 
 WORKDIR /usr/src/app
 
-RUN apt-get update && apt-get install -y pipenv libtag1-dev libchromaprint-tools ffmpeg cron
+RUN echo "deb https://deb.debian.org/debian sid main" >> /etc/apt/sources.list
+RUN echo "deb https://deb.debian.org/debian experimental main" >> /etc/apt/sources.list
+RUN apt-get update && apt-get -t experimental install -y  libtag-c-dev
+RUN apt-get update && apt-get install -y pipenv libchromaprint-tools ffmpeg cron
 
 # Every week, run a full scan of all files in the media library
 RUN echo "30 12 * * 6 root cd `pwd` && pipenv run python -u import.py >> /var/log/cron.log 2>&1" > /etc/cron.d/import
