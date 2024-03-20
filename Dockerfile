@@ -2,10 +2,16 @@ FROM python:3.10
 
 WORKDIR /usr/src/app
 
-RUN echo "deb https://deb.debian.org/debian sid main" >> /etc/apt/sources.list
-RUN echo "deb https://deb.debian.org/debian experimental main" >> /etc/apt/sources.list
-RUN apt-get update && apt-get -t experimental install -y  libtag-c-dev
-RUN apt-get update && apt-get install -y pipenv libchromaprint-tools ffmpeg cron
+RUN apt-get update && apt-get install -y pipenv libchromaprint-tools ffmpeg cron 
+
+# Version 2.0 of taglib isn't yet packaged for debian on armv7l, so try building from source
+RUN apt-get install -y cmake libutfcpp-dev
+RUN curl "https://taglib.org/releases/taglib-2.0.tar.gz" | tar -zxv
+WORKDIR /usr/src/app/taglib-2.0
+RUN cmake -DCMAKE_INSTALL_PREFIX=/usr/local -DCMAKE_BUILD_TYPE=Release .
+RUN make
+RUN make install
+WORKDIR /usr/src/app
 
 # Every week, run a full scan of all files in the media library
 RUN echo "30 12 * * 6 root cd `pwd` && pipenv run python -u import.py >> /var/log/cron.log 2>&1" > /etc/cron.d/import
