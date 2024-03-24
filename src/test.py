@@ -64,6 +64,20 @@ testcases = [
 		'path': "test_tracks/lockdown-compositions.jpg",
 		'expected_data': None,
 	},
+	{
+		'comment': "Tracks in directory of known provenance set provenance tag",
+		'path': "test_tracks/ceol srl/bandcamp/A Testing Band.mp3",
+		'expected_data': {
+			'duration': 4,
+			'tags': {
+				'title': 'A Testing Band',
+				'artist': 'The Very Camp Band',
+				'comment': '',
+				'provenance': 'bandcamp',
+			},
+			'url': "http://example.org/media_library/test_tracks/ceol srl/bandcamp/A Testing Band.mp3",
+		}
+	},
 ]
 failures = 0
 

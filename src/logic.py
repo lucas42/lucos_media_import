@@ -34,6 +34,17 @@ def scan_file(path):
 	if "artist" in tags and tags["artist"] == "Various":
 		del tags["artist"]
 
+	# Check whether the file is in a folder of known provenance - if so, set the provenance tag
+	provenance_mapping = {
+		'/ceol srl/bandcamp/': 'bandcamp',
+		'/ceol srl/7digital/': '7digital',
+		'/ceol srl/Amazon Music/': 'amazon',
+		'/ceol srl/newgrounds/': 'newgrounds',
+	}
+	for path_match, provenance_tag in provenance_mapping.items():
+		if path_match in path:
+			tags["provenance"] = provenance_tag
+
 	duration, fingerprint = acoustid.fingerprint_file(path, maxlength=60)
 
 	if fingerprint.decode('UTF-8') in ["AQAAAA", "AQAAAQkz9UsCAQ"]:
