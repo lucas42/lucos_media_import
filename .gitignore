@@ -1,3 +1,4 @@
 .env
 __pycache__
 .mscbackup
+.DS_Store
