@@ -28,6 +28,8 @@ def log(message, error=False, debug=False):
 def insertTrack(fingerprint, trackdata):
 	log(fingerprint.decode("UTF-8") + ", " + str(trackdata), debug=True)
 	trackresult = session.put(apiurl+"/v2/tracks", params={"fingerprint": fingerprint.decode('UTF-8')}, data=json.dumps(trackdata), allow_redirects=False, headers={"If-None-Match": "*", "Authorization":"key "+apiKey})
+	if (trackresult.status_code == 400):
+		log("Bad Request: "+trackresult.text, error=True)
 	trackresult.raise_for_status()
 	trackAction = trackresult.headers.get("Track-Action")
 	if (trackAction == "noChange"):
