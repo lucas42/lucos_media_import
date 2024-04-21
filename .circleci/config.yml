@@ -24,11 +24,11 @@ workflows:
   build-deploy:
     jobs:
       - test
-      - lucos/build-arm
+      - lucos/build-armv7l
       - lucos/deploy-xwing:
           requires:
             - test
-            - lucos/build-arm
+            - lucos/build-armv7l
           filters:
             branches:
               only:
