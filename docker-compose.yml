@@ -18,5 +18,5 @@ volumes:
     driver: local
     driver_opts:
       type: nfs
-      o: "addr=aurora,ro,nolock,hard,intr,retry=3"
+      o: "addr=aurora.local,ro,nolock,hard,intr,retry=3"
       device: ":/medlib/ceol srl"
