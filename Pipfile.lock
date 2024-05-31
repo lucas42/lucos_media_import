@@ -1,14 +1,14 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "680e9899a3a646e584ba7fe85f227edafc464ce135c0e3931472e23b9874b233"
+            "sha256": "faa4ae8695252896f089e91ff9a4b0e6601ae3d8e1bae30fcbfb680e13eb4c8e"
         },
         "pipfile-spec": 6,
         "requires": {},
         "sources": [
             {
                 "name": "pypi",
-                "url": "https://pypi.python.org/simple",
+                "url": "https://pypi.org/simple",
                 "verify_ssl": true
             }
         ]
@@ -183,7 +183,6 @@
                 "sha256:fbb1ae40348258104035c32d629758591a4f7c2a69f827d158d29ac6745ba8d5"
             ],
             "index": "pypi",
-            "markers": "python_version >= '3.6'",
             "version": "==3.0.0"
         },
         "requests": {
@@ -192,7 +191,6 @@
                 "sha256:70761cfe03c773ceb22aa2f671b4757976145175cdfca038c02654d061d6dcc6"
             ],
             "index": "pypi",
-            "markers": "python_version >= '3.8'",
             "version": "==2.32.3"
         },
         "urllib3": {
