@@ -13,9 +13,6 @@ RUN make
 RUN make install
 WORKDIR /usr/src/app
 
-# pytaglib isn't pre-compiled for all python architectures, so also install dev libraries to allow it to be compiled on-the-fly
-RUN apt-get install -y libtag1-dev
-
 # Every week, run a full scan of all files in the media library
 RUN echo "30 12 * * 6 root cd `pwd` && pipenv run python -u import.py >> /var/log/cron.log 2>&1" > /etc/cron.d/import
 
