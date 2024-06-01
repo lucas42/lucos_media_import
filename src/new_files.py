@@ -41,6 +41,7 @@ def isRecent(root, file):
 errorCount = 0
 
 print("Starting new_files scan of "+dirpath)
+recent_files = []
 for root, dirs, files in os.walk(dirpath):
 	# Build a list of directories which have recently been modified
 	# Ensuring os.walk dosen't decend into the other directories
@@ -48,10 +49,14 @@ for root, dirs, files in os.walk(dirpath):
 	for name in files:
 		try:
 			if isRecent(root, name):
-				scan_insert_file(os.path.join(root, name))
+				recent_files.append(os.path.join(root, name))
 		except Exception as error:
 			print("\033[91m"+type(error).__name__ + " " + str(error) + " " + name + "\033[0m")
 			errorCount += 1
+
+# Scan the files after building the recent list, so time spent scanning doesn't cause some files to no longer be classed as recent
+for file in recent_files:
+	scan_insert_file(file)
 
 updateScheduleTracker(success=(errorCount == 0), message="New files import encountered "+str(errorCount)+" errors", system="lucos_media_import_new_files", frequency=60)
 
