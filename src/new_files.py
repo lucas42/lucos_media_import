@@ -14,19 +14,6 @@ dirpath = os.environ.get("MEDIA_DIRECTORY")
 if not os.path.isdir(dirpath):
 	sys.exit("\033[91mMEDIA_DIRECTORY \""+dirpath+"\" is not a directory\033[0m")
 
-## Make sure only running once at a time, using lockfile
-try:
-	lockfile = open("new_files.lock", "r")
-	pid = lockfile.read()
-	lockfile.close()
-	if os.path.exists("/proc/"+pid+"/"): # Not fullproof as pids can be reused
-		sys.exit("\033[91mNew files import already running (pid "+pid+")\033[0m")
-except FileNotFoundError:
-	pass
-lockfile = open("new_files.lock", "w")
-lockfile.write(str(os.getpid()))
-lockfile.close()
-
 # Checks with a file or directory has recently been modified (based on `ctime`)
 # Returns boolean
 def isRecent(root, file):
@@ -59,5 +46,3 @@ for file in recent_files:
 	scan_insert_file(file)
 
 updateScheduleTracker(success=(errorCount == 0), message="New files import encountered "+str(errorCount)+" errors", system="lucos_media_import_new_files", frequency=60)
-
-os.remove("new_files.lock")
