@@ -8,7 +8,7 @@ RUN apt-get update && apt-get install -y libchromaprint-tools ffmpeg cron
 RUN apt-get install -y cmake libutfcpp-dev
 RUN curl "https://taglib.org/releases/taglib-2.0.tar.gz" | tar -zxv
 WORKDIR /usr/src/app/taglib-2.0
-RUN cmake -DCMAKE_INSTALL_PREFIX=/usr/local -DCMAKE_BUILD_TYPE=Release .
+RUN cmake -DCMAKE_INSTALL_PREFIX=/usr/local -DCMAKE_BUILD_TYPE=Release -DCMAKE_POSITION_INDEPENDENT_CODE=ON .
 RUN make
 RUN make install
 WORKDIR /usr/src/app
