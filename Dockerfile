@@ -2,7 +2,7 @@ FROM python:3.10
 
 WORKDIR /usr/src/app
 
-RUN apt-get update && apt-get install -y libchromaprint-tools ffmpeg cron
+RUN apt-get update && apt-get install -y libchromaprint-tools ffmpeg cron zlib1g
 
 # Version 2.0 of taglib isn't yet packaged for debian on armv7l, so try building from source
 RUN apt-get install -y cmake libutfcpp-dev
