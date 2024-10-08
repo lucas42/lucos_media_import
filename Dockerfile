@@ -2,7 +2,7 @@ FROM python:3.10
 
 WORKDIR /usr/src/app
 
-RUN apt-get update && apt-get install -y pipenv libchromaprint-tools ffmpeg cron 
+RUN apt-get update && apt-get install -y libchromaprint-tools ffmpeg cron
 
 # Version 2.0 of taglib isn't yet packaged for debian on armv7l, so try building from source
 RUN apt-get install -y cmake libutfcpp-dev
@@ -20,6 +20,7 @@ RUN echo "30 12 * * 6 root cd `pwd` && pipenv run python -u import.py >> /var/lo
 RUN echo "* * * * * root cd `pwd` && pipenv run python -u new_files.py >> /var/log/cron.log 2>&1" >> /etc/cron.d/import
 COPY startup.sh .
 
+RUN pip install pipenv
 COPY Pipfile* ./
 RUN pipenv install
 
