@@ -6,8 +6,8 @@ RUN apt-get update && apt-get install -y libchromaprint-tools ffmpeg cron zlib1g
 
 # Version 2.0 of taglib isn't yet packaged for debian on armv7l, so try building from source
 RUN apt-get install -y cmake libutfcpp-dev
-RUN curl "https://taglib.org/releases/taglib-2.0.tar.gz" | tar -zxv
-WORKDIR /usr/src/app/taglib-2.0
+RUN curl "https://taglib.org/releases/taglib-2.0.2.tar.gz" | tar -zxv
+WORKDIR /usr/src/app/taglib-2.0.2
 RUN cmake -DCMAKE_INSTALL_PREFIX=/usr/local -DCMAKE_BUILD_TYPE=Release -DCMAKE_POSITION_INDEPENDENT_CODE=ON .
 RUN make
 RUN make install
