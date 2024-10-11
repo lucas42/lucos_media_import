@@ -1,5 +1,5 @@
 #! /usr/local/bin/python3
-import os
+import os, traceback
 
 # Set the media prefix to a known value for testing
 os.environ["MEDIA_PREFIX"] = "http://example.org/media_library/"
@@ -95,9 +95,11 @@ for case in testcases:
 	except Exception as error:
 		if "expected_error" not in case:
 			print("\033[91mFailed\033[0m \"" + case['comment'] + "\".  Unexpected error raised: \033[91m"+type(error).__name__ + " " + str(error) + "\033[0m")
+			traceback.print_exception(error)
 			failures += 1
 		elif case["expected_error"] != str(error):
 			print("\033[91mFailed\033[0m \"" + case['comment'] + "\".  Mismatched error message: Returned \033[91m" + str(error) + "\033[0m, expected " + str(case['expected_error']))
+			traceback.print_exception(error)
 			failures += 1
 
 if (failures > 0):
