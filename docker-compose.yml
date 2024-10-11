@@ -1,17 +1,22 @@
 version: '3'
 services:
-    media_importer:
-      build: .
-      container_name: lucos_media_import
-      volumes:
-        - "media:/medlib/ceol srl"
-      environment:
-        - MEDIA_API
-        - MEDIA_DIRECTORY=/medlib/ceol srl
-        - MEDIA_PREFIX
-        - KEY_LUCOS_MEDIA_METADATA_API
-      image: lucas42/lucos_media_import
-      restart: always
+  media_importer:
+    build: .
+    container_name: lucos_media_import
+    volumes:
+      - "media:/medlib/ceol srl"
+    environment:
+      - MEDIA_API
+      - MEDIA_DIRECTORY=/medlib/ceol srl
+      - MEDIA_PREFIX
+      - KEY_LUCOS_MEDIA_METADATA_API
+    image: lucas42/lucos_media_import
+    restart: always
+  test:
+    build: .
+    container_name: lucos_media_import_test
+    image: lucas42/lucos_media_import
+    command: pipenv run python test.py
 
 volumes:
   media:

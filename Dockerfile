@@ -24,6 +24,7 @@ RUN pip install pipenv
 COPY Pipfile* ./
 RUN pipenv install
 
+COPY test_tracks ./test_tracks
 COPY src/* ./
 
 CMD [ "./startup.sh"]

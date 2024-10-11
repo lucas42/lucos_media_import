@@ -34,7 +34,7 @@ Run `pipenv install` to setup
 ## Testing
 
 Doesn't use a proper testing framework.  However, run
-`pipenv run python src/test.py`
+`docker compose up test --build --exit-code-from test`
 which will check various calls to the scan_file() function, relying on files in the `test_tracks` directory
 
 ## Environment Variables
