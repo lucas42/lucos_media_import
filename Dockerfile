@@ -24,6 +24,10 @@ RUN pip install pipenv
 COPY Pipfile* ./
 RUN pipenv install
 
+# Workaround for https://github.com/beetbox/audioread/issues/144 to enable running on python 3.13
+RUN pipenv install -e "git+https://github.com/youknowone/python-deadlib.git#egg=standard-aifc&subdirectory=aifc"
+RUN pipenv install -e "git+https://github.com/youknowone/python-deadlib.git#egg=standard-sunau&subdirectory=sunau"
+
 COPY test_tracks ./test_tracks
 COPY src/* ./
 
