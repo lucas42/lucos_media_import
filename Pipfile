@@ -1,16 +1,15 @@
 [[source]]
-
 url = "https://pypi.org/simple"
 verify_ssl = true
 name = "pypi"
 
-
 [packages]
-
 pytaglib = "*"
 requests = "*"
 pyacoustid = "*"
 
+# Workaround for https://github.com/beetbox/audioread/issues/144 to enable running on python 3.13
+standard-aifc = "3.13"
+standard-sunau = "3.13"
 
 [dev-packages]
-
