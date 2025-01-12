@@ -27,7 +27,7 @@ def isRecent(root, file):
 
 errorCount = 0
 
-print("Starting new_files scan of "+dirpath)
+print("["+datetime.now().isoformat()+"] Starting new_files scan of "+dirpath)
 recent_files = []
 for root, dirs, files in os.walk(dirpath):
 	# Build a list of directories which have recently been modified
@@ -38,7 +38,7 @@ for root, dirs, files in os.walk(dirpath):
 			if isRecent(root, name):
 				recent_files.append(os.path.join(root, name))
 		except Exception as error:
-			print("\033[91m"+type(error).__name__ + " " + str(error) + " " + name + "\033[0m")
+			print("\033[91m ["+datetime.now().isoformat()+"] "+type(error).__name__ + " " + str(error) + " " + name + "\033[0m", file=sys.stderr)
 			errorCount += 1
 
 # Scan the files after building the recent list, so time spent scanning doesn't cause some files to no longer be classed as recent

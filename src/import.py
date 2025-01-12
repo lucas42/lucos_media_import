@@ -4,6 +4,7 @@ import os, sys
 from logic import scan_insert_file
 from loganne import loganneRequest
 from schedule_tracker import updateScheduleTracker
+from datetime import datetime
 
 
 ## Make sure required environment varible is set
@@ -37,7 +38,7 @@ loganneRequest({
 
 errorCount = 0
 
-print("Starting scan of "+dirpath)
+print("["+datetime.now().isoformat()+"] Starting scan of "+dirpath)
 for root, dirs, files in os.walk(dirpath):
 
 	# Ignore hidden files and directories
@@ -48,7 +49,7 @@ for root, dirs, files in os.walk(dirpath):
 			path = os.path.join(root, name)
 			scan_insert_file(path)
 		except Exception as error:
-			print("\033[91m"+type(error).__name__ + " " + str(error) + " " + path + "\033[0m")
+			print("\033[91m ["+datetime.now().isoformat()+"] "+type(error).__name__ + " " + str(error) + " " + path + "\033[0m", file=sys.stderr)
 			errorCount += 1
 
 updateScheduleTracker(success=(errorCount == 0), message="Import encountered "+str(errorCount)+" errors", frequency=(7 * 24 * 60 * 60))

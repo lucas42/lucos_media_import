@@ -1,4 +1,5 @@
 import json, sys, os, requests
+from datetime import datetime
 
 if not os.environ.get("MEDIA_API"):
 	sys.exit("\033[91mMEDIA_API not set\033[0m")
@@ -21,9 +22,9 @@ def log(message, error=False, debug=False):
 	if (debug and not verbose):
 		return
 	if error:
-		print("\033[91m** Error ** "+str(message)+"\033[0m", file=sys.stderr)
+		print("\033[91m ["+datetime.now().isoformat()+"] ** Error ** "+str(message)+"\033[0m", file=sys.stderr)
 	else:
-		print ("\033[92m"+str(message)+"\033[0m")
+		print ("\033[92m ["+datetime.now().isoformat()+"] "+str(message)+"\033[0m")
 
 def insertTrack(fingerprint, trackdata):
 	log(fingerprint.decode("UTF-8") + ", " + str(trackdata), debug=True)
