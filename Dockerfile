@@ -14,9 +14,9 @@ RUN make install
 WORKDIR /usr/src/app
 
 # Every week, run a full scan of all files in the media library
-RUN echo "30 12 * * 6 root cd `pwd` && /usr/local/bin/pipenv --quiet run python -u import.py >> /var/log/cron.log 2>&1" > /etc/cron.d/import
+RUN echo "30 18 * * Tue root cd `pwd` && /usr/local/bin/pipenv --quiet run python -u import.py >> /var/log/cron.log 2>&1" > /etc/cron.d/import
 
-# Every minutes, run a scan of files which have been recently added/modified
+# Every minute, run a scan of files which have been recently added/modified
 RUN echo "* * * * * root cd `pwd` && /usr/local/bin/pipenv --quiet run python -u new_files.py >> /var/log/cron.log 2>&1" >> /etc/cron.d/import
 COPY startup.sh .
 
