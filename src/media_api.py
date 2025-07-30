@@ -11,6 +11,8 @@ if not os.environ.get("KEY_LUCOS_MEDIA_METADATA_API"):
 	sys.exit("\033[91mKEY_LUCOS_MEDIA_METADATA_API not set\033[0m")
 apiKey = os.environ.get("KEY_LUCOS_MEDIA_METADATA_API")
 
+trackKey = os.environ.get("TRACK_KEY", "fingerprint")
+
 verbose = False
 
 session = requests.Session()
@@ -26,14 +28,17 @@ def log(message, error=False, debug=False):
 	else:
 		print ("\033[92m ["+datetime.now().isoformat()+"] "+str(message)+"\033[0m")
 
-def insertTrack(fingerprint, trackdata):
-	log(fingerprint.decode("UTF-8") + ", " + str(trackdata), debug=True)
-	trackresult = session.put(apiurl+"/v2/tracks", params={"fingerprint": fingerprint.decode('UTF-8')}, data=json.dumps(trackdata), allow_redirects=False, headers={"If-None-Match": "*", "Authorization":"key "+apiKey})
+def insertTrack(trackdata):
+	url = trackdata["url"] # Used for Logging
+	keyValue = trackdata[trackKey] # The primary key for sending to the API
+	del trackdata[trackKey] # Don't include the primary key in the request body, as it'll be part of the URL parameters
+	log(trackKey + "=" + keyValue + ", " + str(trackdata), debug=True)
+	trackresult = session.put(apiurl+"/v2/tracks", params={trackKey: keyValue}, data=json.dumps(trackdata), allow_redirects=False, headers={"If-None-Match": "*", "Authorization":"key "+apiKey})
 	if (trackresult.status_code == 400):
 		log("Bad Request: "+trackresult.text, error=True)
 	trackresult.raise_for_status()
 	trackAction = trackresult.headers.get("Track-Action")
 	if (trackAction == "noChange"):
-		log("No change for track " + trackdata["url"], debug=True)
+		log("No change for track " + url, debug=True)
 	else:
-		log(trackAction + " " + trackdata["url"])
+		log(trackAction + " " + url)

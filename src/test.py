@@ -23,6 +23,7 @@ testcases = [
 				'artist': 'Computerface',
 			},
 			'url': "http://example.org/media_library/test_tracks/A Testing Day.mp3",
+			'fingerprint': 'AQAAEA8lJhmDMwyeZRmMH_mHZDmD5j1-XKGJ_MbUEezx43gIwIghQgAhmIBCSEKpBA',
 		}
 	},
 	{
@@ -45,6 +46,7 @@ testcases = [
 				'artist': 'Computerface',
 			},
 			'url': "http://example.org/media_library/test_tracks/No Title.mp3",
+			'fingerprint': 'AQAAD1dCbZqQa4RLpXj0QHnwH2nFI4-SHTzuHOeK_vAaHS2PE4GMMQogp4QFgAlDEAM',
 		}
 	},
 	{
@@ -57,6 +59,7 @@ testcases = [
 				'album': 'Compilations',
 			},
 			'url': "http://example.org/media_library/test_tracks/Various Artists.mp3",
+			'fingerprint': 'AQAABtm2i1GChOrx4cmH8QO5MwAAARVGAA',
 		}
 	},
 	{
@@ -76,6 +79,7 @@ testcases = [
 				'provenance': 'bandcamp',
 			},
 			'url': "http://example.org/media_library/test_tracks/ceol srl/bandcamp/A Testing Band.mp3",
+			'fingerprint': 'AQAAEpU0R1tQNUcfNMezIHwbNM9xDX-hKuvxXkmC6YIfFEePo9cBIwARQiAIDAEWYREJAQ',
 		}
 	},
 ]
@@ -83,7 +87,7 @@ failures = 0
 
 for case in testcases:
 	try:
-		(actual_fingerprint, actual_data) = scan_file(case["path"])
+		actual_data = scan_file(case["path"])
 		if "expected_error" in case:
 			print("\033[91mFailed\033[0m \"" + case['comment'] + "\".  No error raised.")
 			print(actual_data["duration"])

@@ -43,6 +43,7 @@ For local development, these should be stored in a .env file
 * _**MEDIA_DIRECTORY**_ The directory in which to look for audio files to import
 * _**MEDIA_PREFIX**_ Added to the start of each track's local path to form the url for that track
 * _**MEDIA_API**_ URL of an instance of [lucos_media_metadata_api](https://github.com/lucas42/lucos_media_metadata_api)
+* _**TRACK_KEY**_ The field to use as the primary key when sending track metadata to the API.  Defaults to _fingerprint_; other option is _url_.
 
 ## File structure
 

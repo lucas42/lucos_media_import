@@ -15,7 +15,7 @@ def scan_file(path):
 	try:
 		filemetadata = taglib.File(path)
 	except OSError:
-		return (None, None)
+		return None
 	tags = {}
 	for key, values in filemetadata.tags.items():
 		if len(values) < 1:
@@ -56,11 +56,12 @@ def scan_file(path):
 		"duration": int(duration),
 		"tags": tags,
 		"url": trackurl,
+		"fingerprint": fingerprint.decode("UTF-8"),
 	}
-	return (fingerprint, trackdata)
+	return trackdata
 
 def scan_insert_file(path):
-	(fingerprint, trackdata) = scan_file(path)
+	trackdata = scan_file(path)
 	if trackdata is None:
 		return
-	insertTrack(fingerprint, trackdata)
+	insertTrack(trackdata)

@@ -10,8 +10,10 @@ services:
       - MEDIA_PREFIX
       - KEY_LUCOS_MEDIA_METADATA_API
       - LOGANNE_ENDPOINT
+      - TRACK_KEY
     image: lucas42/lucos_media_import
     restart: always
+    entrypoint: pipenv run python -u import.py
   test:
     build: .
     container_name: lucos_media_import_test
