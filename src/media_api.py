@@ -33,7 +33,7 @@ def insertTrack(trackdata):
 	keyValue = trackdata[trackKey] # The primary key for sending to the API
 	del trackdata[trackKey] # Don't include the primary key in the request body, as it'll be part of the URL parameters
 	log(trackKey + "=" + keyValue + ", " + str(trackdata), debug=True)
-	trackresult = session.put(apiurl+"/v2/tracks", params={trackKey: keyValue}, data=json.dumps(trackdata), allow_redirects=False, headers={"If-None-Match": "*", "Authorization":"key "+apiKey})
+	trackresult = session.put(apiurl+"/v2/tracks", params={trackKey: keyValue}, data=json.dumps(trackdata), allow_redirects=False, headers={"If-None-Match": "*", "Authorization":"key "+apiKey, 'User-Agent': "lucos_media_import"})
 	if (trackresult.status_code == 400):
 		log("Bad Request: "+trackresult.text, error=True)
 	trackresult.raise_for_status()
