@@ -11,6 +11,7 @@ services:
       - KEY_LUCOS_MEDIA_METADATA_API
       - LOGANNE_ENDPOINT
       - TRACK_KEY
+      - SCHEDULE_TRACKER_ENDPOINT
     image: lucas42/lucos_media_import
     restart: always
   test:
