@@ -41,6 +41,7 @@ def scan_file(path):
 		'/ceol srl/Amazon Music/': 'amazon',
 		'/ceol srl/newgrounds/': 'newgrounds',
 		'/ceol srl/iTunes/': 'itunes',
+		'/ceol srl/qobuz/': 'qobuz',
 	}
 	for path_match, provenance_tag in provenance_mapping.items():
 		if path_match in path:
