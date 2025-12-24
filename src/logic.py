@@ -1,4 +1,6 @@
 import os, sys, urllib
+import io
+io.DEFAULT_BUFFER_SIZE = 8192 # Workaround for fingerprints to be consistent with pre-3.14 versions of python
 import taglib, acoustid
 from media_api import insertTrack
 
