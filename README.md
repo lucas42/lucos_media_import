@@ -4,7 +4,7 @@ Scans the filesystem for audio files and writes metadata about them to an API.
 ## Dependencies
 
 * docker
-* docker-compose
+* docker compose
 
 ## Remote Dependencies
 
@@ -17,13 +17,13 @@ Scans the filesystem for audio files and writes metadata about them to an API.
 * [chromaprint](https://acoustid.org/chromaprint)
 
 ## Running
-`nice -19 docker-compose up -d --no-build`
+`nice -19 docker compose up -d --no-build`
 
 ## Running script without cron
 
 To test the script logic with worrying about cronjobs.
 
-Set `entrypoint: pipenv run python -u import.py` in the docker-compose file (or equivalent)
+Set `entrypoint: pipenv run python -u import.py` in the docker compose file (or equivalent)
 
 ## Running locally
 
