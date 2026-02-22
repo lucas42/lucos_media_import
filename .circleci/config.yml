@@ -18,6 +18,7 @@ workflows:
       - test
       - lucos/build-armv7l
       - lucos/deploy-xwing:
+          serial-group: << pipeline.project.slug >>/deploy-xwing
           requires:
             - test
             - lucos/build-armv7l
