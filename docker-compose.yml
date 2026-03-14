@@ -25,6 +25,7 @@ services:
     container_name: lucos_media_import_test
     image: lucas42/lucos_media_import
     command: pipenv run python test.py
+    profiles: [test]
 
 volumes:
   media:
