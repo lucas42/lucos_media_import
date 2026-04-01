@@ -26,14 +26,14 @@ def scan_file(path):
 		value = " & ".join(values)
 		if key not in ["title", "album", "artist", "year", "genre", "comment", "lyrics"]:
 			continue
-		tags[key] = value
+		tags[key] = [{"name": value}]
 
 	# If there's no title in the ID3 tags, default to filename (ignoring extension)
 	if "title" not in tags:
-		tags["title"] = path.split("/")[-1].rsplit(".", 1)[0]
+		tags["title"] = [{"name": path.split("/")[-1].rsplit(".", 1)[0]}]
 
 	# Many tracks from compilation albums are tagged with an artist of "Various" - this is really unhelpful in a library context, so ignore this tag
-	if "artist" in tags and tags["artist"] == "Various":
+	if "artist" in tags and tags["artist"] == [{"name": "Various"}]:
 		del tags["artist"]
 
 	# Check whether the file is in a folder of known provenance - if so, set the provenance tag
@@ -47,7 +47,7 @@ def scan_file(path):
 	}
 	for path_match, provenance_tag in provenance_mapping.items():
 		if path_match in path:
-			tags["provenance"] = provenance_tag
+			tags["provenance"] = [{"name": provenance_tag}]
 
 	duration, fingerprint = acoustid.fingerprint_file(path, maxlength=60)
 
