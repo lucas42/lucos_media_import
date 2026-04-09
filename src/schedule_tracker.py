@@ -14,7 +14,7 @@ def updateScheduleTracker(success=True, message=None, system="lucos_media_import
 		"message": message,
 	}
 	try:
-		schedule_tracker_response = requests.post(SCHEDULE_TRACKER_ENDPOINT, json=payload);
+		schedule_tracker_response = requests.post(SCHEDULE_TRACKER_ENDPOINT, json=payload, headers={"User-Agent": os.environ.get("SYSTEM")});
 		schedule_tracker_response.raise_for_status()
 	except Exception as error:
 		print("\033[91m ["+datetime.now().isoformat()+"] ** Error ** Call to schedule-tracker failed.  "+type(error).__name__ + " " + str(error) + "\033[0m")
