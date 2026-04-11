@@ -29,17 +29,22 @@ def log(message, error=False, debug=False):
 		print ("\033[92m ["+datetime.now().isoformat()+"] "+str(message)+"\033[0m")
 
 def _lookup_album_by_name(name):
-	"""GETs /v3/albums?q=<name> and returns the album dict if an exact match is found."""
-	result = session.get(
-		apiurl + "/v3/albums",
-		params={"q": name},
-		headers={"Authorization": "Bearer " + apiKey, "User-Agent": os.environ.get("SYSTEM")}
-	)
-	result.raise_for_status()
-	for album in result.json().get("albums", []):
-		if album["name"] == name:
-			return album
-	return None
+	"""GETs /v3/albums?q=<name> across all pages and returns the album dict if an exact match is found."""
+	page = 1
+	while True:
+		result = session.get(
+			apiurl + "/v3/albums",
+			params={"q": name, "page": page},
+			headers={"Authorization": "Bearer " + apiKey, "User-Agent": os.environ.get("SYSTEM")}
+		)
+		result.raise_for_status()
+		data = result.json()
+		for album in data.get("albums", []):
+			if album["name"] == name:
+				return album
+		if page >= data.get("totalPages", 1):
+			return None
+		page += 1
 
 def lookupOrCreateAlbum(name):
 	"""Returns a tag value dict {name, uri} for the album, creating it if necessary."""

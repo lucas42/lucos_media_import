@@ -227,6 +227,29 @@ class TestLookupOrCreateAlbum(unittest.TestCase):
 		self.assertEqual(mock_session.get.call_count, 2)
 
 	@patch('media_api.session')
+	def test_found_on_second_page(self, mock_session):
+		"""GET returns match on page 2 when page 1 is full and has no exact match."""
+		mock_get_page1 = MagicMock()
+		mock_get_page1.json.return_value = {
+			"albums": [{"name": "A (Deluxe)", "uri": "https://media.l42.eu/albums/1"}],
+			"totalPages": 2,
+			"page": 1,
+		}
+		mock_get_page2 = MagicMock()
+		mock_get_page2.json.return_value = {
+			"albums": [{"name": "A", "uri": "https://media.l42.eu/albums/2"}],
+			"totalPages": 2,
+			"page": 2,
+		}
+		mock_session.get.side_effect = [mock_get_page1, mock_get_page2]
+
+		result = lookupOrCreateAlbum("A")
+
+		self.assertEqual(result, {"name": "A", "uri": "https://media.l42.eu/albums/2"})
+		self.assertEqual(mock_session.get.call_count, 2)
+		mock_session.post.assert_not_called()
+
+	@patch('media_api.session')
 	def test_race_condition_409_retry_fails(self, mock_session):
 		"""POST returns 409 but retry GET also finds nothing — raises exception."""
 		mock_get = MagicMock()
