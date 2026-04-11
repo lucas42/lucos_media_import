@@ -1,4 +1,4 @@
-import json, sys, os, requests
+import json, sys, os, urllib.parse, requests
 from datetime import datetime
 
 if not os.environ.get("MEDIA_API"):
@@ -27,6 +27,47 @@ def log(message, error=False, debug=False):
 		print("\033[91m ["+datetime.now().isoformat()+"] ** Error ** "+str(message)+"\033[0m", file=sys.stderr)
 	else:
 		print ("\033[92m ["+datetime.now().isoformat()+"] "+str(message)+"\033[0m")
+
+def _lookup_album_by_name(name):
+	"""GETs /v3/albums?q=<name> across all pages and returns the album dict if an exact match is found."""
+	page = 1
+	while True:
+		result = session.get(
+			apiurl + "/v3/albums",
+			params={"q": name, "page": page},
+			headers={"Authorization": "Bearer " + apiKey, "User-Agent": os.environ.get("SYSTEM")}
+		)
+		result.raise_for_status()
+		data = result.json()
+		for album in data.get("albums", []):
+			if album["name"] == name:
+				return album
+		if page >= data.get("totalPages", 1):
+			return None
+		page += 1
+
+def lookupOrCreateAlbum(name):
+	"""Returns a tag value dict {name, uri} for the album, creating it if necessary."""
+	album = _lookup_album_by_name(name)
+	if album:
+		return {"name": name, "uri": album["uri"]}
+
+	create_result = session.post(
+		apiurl + "/v3/albums",
+		json={"name": name},
+		headers={"Authorization": "Bearer " + apiKey, "User-Agent": os.environ.get("SYSTEM")}
+	)
+	if create_result.status_code == 201:
+		album = create_result.json()
+		log("Created album: " + name)
+		return {"name": name, "uri": album["uri"]}
+	if create_result.status_code == 409:
+		# Race condition: another process created it; retry lookup
+		album = _lookup_album_by_name(name)
+		if album:
+			return {"name": name, "uri": album["uri"]}
+		raise Exception("Album '" + name + "' not found after 409 on create")
+	create_result.raise_for_status()
 
 def insertTrack(trackdata):
 	url = trackdata["url"] # Used for Logging
