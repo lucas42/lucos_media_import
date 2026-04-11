@@ -1,5 +1,6 @@
 #! /usr/local/bin/python3
-import os, traceback
+import os, traceback, unittest
+from unittest.mock import patch, MagicMock
 
 # Set the media prefix to a known value for testing
 os.environ["MEDIA_PREFIX"] = "http://example.org/media_library/"
@@ -9,8 +10,8 @@ os.environ["MEDIA_PREFIX"] = "http://example.org/media_library/"
 os.environ["MEDIA_API"] = "http://localhost:000/null"
 os.environ["KEY_LUCOS_MEDIA_METADATA_API"] = "invalidkey"
 
-# Unit under test
-from logic import scan_file
+# Units under test
+from logic import scan_file, scan_insert_file
 
 testcases = [
 	{
@@ -123,3 +124,39 @@ if (failures > 0):
 	exit(1)
 else:
 	print("All " + str(len(testcases)) + " cases passed.")
+
+
+class TestScanInsertFileAlbum(unittest.TestCase):
+	"""Tests for album URI resolution in scan_insert_file."""
+
+	@patch('logic.insertTrack')
+	@patch('logic.lookupOrCreateAlbum')
+	def test_album_tag_resolved_via_lookup(self, mock_lookup, mock_insert):
+		"""When track has an album tag, lookupOrCreateAlbum is called and the tag value includes the URI."""
+		mock_lookup.return_value = {"name": "Compilations", "uri": "https://media.l42.eu/albums/5"}
+		scan_insert_file("test_tracks/Various Artists.mp3")
+		mock_lookup.assert_called_once_with("Compilations")
+		trackdata = mock_insert.call_args[0][0]
+		self.assertEqual(trackdata["tags"]["album"], [{"name": "Compilations", "uri": "https://media.l42.eu/albums/5"}])
+
+	@patch('logic.insertTrack')
+	@patch('logic.lookupOrCreateAlbum')
+	def test_no_album_tag_skips_lookup(self, mock_lookup, mock_insert):
+		"""When track has no album tag, lookupOrCreateAlbum is not called."""
+		scan_insert_file("test_tracks/A Testing Day.mp3")
+		mock_lookup.assert_not_called()
+		mock_insert.assert_called_once()
+		trackdata = mock_insert.call_args[0][0]
+		self.assertNotIn("album", trackdata["tags"])
+
+	@patch('logic.insertTrack')
+	@patch('logic.lookupOrCreateAlbum')
+	def test_non_audio_file_skips_both(self, mock_lookup, mock_insert):
+		"""Non-audio files result in neither lookup nor insert being called."""
+		scan_insert_file("test_tracks/lockdown-compositions.jpg")
+		mock_lookup.assert_not_called()
+		mock_insert.assert_not_called()
+
+
+if __name__ == '__main__':
+	unittest.main()
