@@ -12,6 +12,7 @@ os.environ["KEY_LUCOS_MEDIA_METADATA_API"] = "invalidkey"
 
 # Units under test
 from logic import scan_file, scan_insert_file
+from media_api import lookupOrCreateAlbum
 
 testcases = [
 	{
@@ -156,6 +157,90 @@ class TestScanInsertFileAlbum(unittest.TestCase):
 		scan_insert_file("test_tracks/lockdown-compositions.jpg")
 		mock_lookup.assert_not_called()
 		mock_insert.assert_not_called()
+
+
+class TestLookupOrCreateAlbum(unittest.TestCase):
+	"""Tests for the lookupOrCreateAlbum function in media_api."""
+
+	@patch('media_api.session')
+	def test_found_on_initial_lookup(self, mock_session):
+		"""GET returns an exact match — returns tag value without POSTing."""
+		mock_get = MagicMock()
+		mock_get.json.return_value = {"albums": [{"name": "Abbey Road", "uri": "https://media.l42.eu/albums/1"}]}
+		mock_session.get.return_value = mock_get
+
+		result = lookupOrCreateAlbum("Abbey Road")
+
+		self.assertEqual(result, {"name": "Abbey Road", "uri": "https://media.l42.eu/albums/1"})
+		mock_session.post.assert_not_called()
+
+	@patch('media_api.session')
+	def test_partial_match_ignored_on_lookup(self, mock_session):
+		"""GET returns a partial match but no exact match — proceeds to POST."""
+		mock_get = MagicMock()
+		mock_get.json.return_value = {"albums": [{"name": "Abbey Road (Deluxe)", "uri": "https://media.l42.eu/albums/2"}]}
+		mock_session.get.return_value = mock_get
+
+		mock_post = MagicMock()
+		mock_post.status_code = 201
+		mock_post.json.return_value = {"id": 99, "name": "Abbey Road", "uri": "https://media.l42.eu/albums/99"}
+		mock_session.post.return_value = mock_post
+
+		result = lookupOrCreateAlbum("Abbey Road")
+
+		self.assertEqual(result, {"name": "Abbey Road", "uri": "https://media.l42.eu/albums/99"})
+		mock_session.post.assert_called_once()
+
+	@patch('media_api.session')
+	def test_not_found_creates_album(self, mock_session):
+		"""GET returns no match — POSTs to create, returns tag value with URI."""
+		mock_get = MagicMock()
+		mock_get.json.return_value = {"albums": []}
+		mock_session.get.return_value = mock_get
+
+		mock_post = MagicMock()
+		mock_post.status_code = 201
+		mock_post.json.return_value = {"id": 42, "name": "New Album", "uri": "https://media.l42.eu/albums/42"}
+		mock_session.post.return_value = mock_post
+
+		result = lookupOrCreateAlbum("New Album")
+
+		self.assertEqual(result, {"name": "New Album", "uri": "https://media.l42.eu/albums/42"})
+		mock_session.post.assert_called_once()
+
+	@patch('media_api.session')
+	def test_race_condition_409_retry_succeeds(self, mock_session):
+		"""POST returns 409 — retries GET which now finds the album."""
+		mock_get_first = MagicMock()
+		mock_get_first.json.return_value = {"albums": []}
+		mock_get_retry = MagicMock()
+		mock_get_retry.json.return_value = {"albums": [{"name": "Race Album", "uri": "https://media.l42.eu/albums/7"}]}
+		mock_session.get.side_effect = [mock_get_first, mock_get_retry]
+
+		mock_post = MagicMock()
+		mock_post.status_code = 409
+		mock_session.post.return_value = mock_post
+
+		result = lookupOrCreateAlbum("Race Album")
+
+		self.assertEqual(result, {"name": "Race Album", "uri": "https://media.l42.eu/albums/7"})
+		self.assertEqual(mock_session.get.call_count, 2)
+
+	@patch('media_api.session')
+	def test_race_condition_409_retry_fails(self, mock_session):
+		"""POST returns 409 but retry GET also finds nothing — raises exception."""
+		mock_get = MagicMock()
+		mock_get.json.return_value = {"albums": []}
+		mock_session.get.return_value = mock_get
+
+		mock_post = MagicMock()
+		mock_post.status_code = 409
+		mock_session.post.return_value = mock_post
+
+		with self.assertRaises(Exception) as ctx:
+			lookupOrCreateAlbum("Missing Album")
+
+		self.assertIn("Missing Album", str(ctx.exception))
 
 
 if __name__ == '__main__':
