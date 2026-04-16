@@ -1,4 +1,6 @@
 FROM python:3.14
+ARG VERSION
+ENV VERSION=$VERSION
 
 WORKDIR /usr/src/app
 
