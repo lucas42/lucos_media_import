@@ -12,7 +12,7 @@ services:
       - LOGANNE_ENDPOINT
       - TRACK_KEY
       - SCHEDULE_TRACKER_ENDPOINT
-    image: lucas42/lucos_media_import
+    image: lucas42/lucos_media_import:${VERSION:-latest}
     restart: always
     healthcheck:
       test: ["CMD", "pgrep", "cron"]
@@ -23,7 +23,7 @@ services:
   test:
     build: .
     container_name: lucos_media_import_test
-    image: lucas42/lucos_media_import
+    image: lucas42/lucos_media_import:${VERSION:-latest}
     command: pipenv run python test.py
     profiles: [test]
 
