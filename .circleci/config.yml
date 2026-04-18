@@ -16,7 +16,8 @@ workflows:
   build-deploy:
     jobs:
       - test
-      - lucos/build-multiplatform
+      - lucos/build-multiplatform:
+          serial-group: << pipeline.project.slug >>/build
       - lucos/deploy-xwing:
           serial-group: << pipeline.project.slug >>/deploy-xwing
           requires:
