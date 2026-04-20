@@ -12,7 +12,6 @@ os.environ["KEY_LUCOS_MEDIA_METADATA_API"] = "invalidkey"
 
 # Units under test
 from logic import scan_file, scan_insert_file
-from media_api import lookupOrCreateAlbum
 
 testcases = [
 	{
@@ -128,142 +127,29 @@ else:
 
 
 class TestScanInsertFileAlbum(unittest.TestCase):
-	"""Tests for album URI resolution in scan_insert_file."""
+	"""Tests for album tag handling in scan_insert_file."""
 
 	@patch('logic.insertTrack')
-	@patch('logic.lookupOrCreateAlbum')
-	def test_album_tag_resolved_via_lookup(self, mock_lookup, mock_insert):
-		"""When track has an album tag, lookupOrCreateAlbum is called and the tag value includes the URI."""
-		mock_lookup.return_value = {"name": "Compilations", "uri": "https://media.l42.eu/albums/5"}
+	def test_album_tag_sent_as_bare_name(self, mock_insert):
+		"""When track has an album tag, it is sent as a bare name (no URI) to insertTrack."""
 		scan_insert_file("test_tracks/Various Artists.mp3")
-		mock_lookup.assert_called_once_with("Compilations")
+		mock_insert.assert_called_once()
 		trackdata = mock_insert.call_args[0][0]
-		self.assertEqual(trackdata["tags"]["album"], [{"name": "Compilations", "uri": "https://media.l42.eu/albums/5"}])
+		self.assertEqual(trackdata["tags"]["album"], [{"name": "Compilations"}])
 
 	@patch('logic.insertTrack')
-	@patch('logic.lookupOrCreateAlbum')
-	def test_no_album_tag_skips_lookup(self, mock_lookup, mock_insert):
-		"""When track has no album tag, lookupOrCreateAlbum is not called."""
+	def test_no_album_tag_passes_through(self, mock_insert):
+		"""When track has no album tag, insertTrack is still called and album is absent."""
 		scan_insert_file("test_tracks/A Testing Day.mp3")
-		mock_lookup.assert_not_called()
 		mock_insert.assert_called_once()
 		trackdata = mock_insert.call_args[0][0]
 		self.assertNotIn("album", trackdata["tags"])
 
 	@patch('logic.insertTrack')
-	@patch('logic.lookupOrCreateAlbum')
-	def test_non_audio_file_skips_both(self, mock_lookup, mock_insert):
-		"""Non-audio files result in neither lookup nor insert being called."""
+	def test_non_audio_file_skips_insert(self, mock_insert):
+		"""Non-audio files result in insertTrack not being called."""
 		scan_insert_file("test_tracks/lockdown-compositions.jpg")
-		mock_lookup.assert_not_called()
 		mock_insert.assert_not_called()
-
-
-class TestLookupOrCreateAlbum(unittest.TestCase):
-	"""Tests for the lookupOrCreateAlbum function in media_api."""
-
-	@patch('media_api.session')
-	def test_found_on_initial_lookup(self, mock_session):
-		"""GET returns an exact match — returns tag value without POSTing."""
-		mock_get = MagicMock()
-		mock_get.json.return_value = {"albums": [{"name": "Abbey Road", "uri": "https://media.l42.eu/albums/1"}]}
-		mock_session.get.return_value = mock_get
-
-		result = lookupOrCreateAlbum("Abbey Road")
-
-		self.assertEqual(result, {"name": "Abbey Road", "uri": "https://media.l42.eu/albums/1"})
-		mock_session.post.assert_not_called()
-
-	@patch('media_api.session')
-	def test_partial_match_ignored_on_lookup(self, mock_session):
-		"""GET returns a partial match but no exact match — proceeds to POST."""
-		mock_get = MagicMock()
-		mock_get.json.return_value = {"albums": [{"name": "Abbey Road (Deluxe)", "uri": "https://media.l42.eu/albums/2"}]}
-		mock_session.get.return_value = mock_get
-
-		mock_post = MagicMock()
-		mock_post.status_code = 201
-		mock_post.json.return_value = {"id": 99, "name": "Abbey Road", "uri": "https://media.l42.eu/albums/99"}
-		mock_session.post.return_value = mock_post
-
-		result = lookupOrCreateAlbum("Abbey Road")
-
-		self.assertEqual(result, {"name": "Abbey Road", "uri": "https://media.l42.eu/albums/99"})
-		mock_session.post.assert_called_once()
-
-	@patch('media_api.session')
-	def test_not_found_creates_album(self, mock_session):
-		"""GET returns no match — POSTs to create, returns tag value with URI."""
-		mock_get = MagicMock()
-		mock_get.json.return_value = {"albums": []}
-		mock_session.get.return_value = mock_get
-
-		mock_post = MagicMock()
-		mock_post.status_code = 201
-		mock_post.json.return_value = {"id": 42, "name": "New Album", "uri": "https://media.l42.eu/albums/42"}
-		mock_session.post.return_value = mock_post
-
-		result = lookupOrCreateAlbum("New Album")
-
-		self.assertEqual(result, {"name": "New Album", "uri": "https://media.l42.eu/albums/42"})
-		mock_session.post.assert_called_once()
-
-	@patch('media_api.session')
-	def test_race_condition_409_retry_succeeds(self, mock_session):
-		"""POST returns 409 — retries GET which now finds the album."""
-		mock_get_first = MagicMock()
-		mock_get_first.json.return_value = {"albums": []}
-		mock_get_retry = MagicMock()
-		mock_get_retry.json.return_value = {"albums": [{"name": "Race Album", "uri": "https://media.l42.eu/albums/7"}]}
-		mock_session.get.side_effect = [mock_get_first, mock_get_retry]
-
-		mock_post = MagicMock()
-		mock_post.status_code = 409
-		mock_session.post.return_value = mock_post
-
-		result = lookupOrCreateAlbum("Race Album")
-
-		self.assertEqual(result, {"name": "Race Album", "uri": "https://media.l42.eu/albums/7"})
-		self.assertEqual(mock_session.get.call_count, 2)
-
-	@patch('media_api.session')
-	def test_found_on_second_page(self, mock_session):
-		"""GET returns match on page 2 when page 1 is full and has no exact match."""
-		mock_get_page1 = MagicMock()
-		mock_get_page1.json.return_value = {
-			"albums": [{"name": "A (Deluxe)", "uri": "https://media.l42.eu/albums/1"}],
-			"totalPages": 2,
-			"page": 1,
-		}
-		mock_get_page2 = MagicMock()
-		mock_get_page2.json.return_value = {
-			"albums": [{"name": "A", "uri": "https://media.l42.eu/albums/2"}],
-			"totalPages": 2,
-			"page": 2,
-		}
-		mock_session.get.side_effect = [mock_get_page1, mock_get_page2]
-
-		result = lookupOrCreateAlbum("A")
-
-		self.assertEqual(result, {"name": "A", "uri": "https://media.l42.eu/albums/2"})
-		self.assertEqual(mock_session.get.call_count, 2)
-		mock_session.post.assert_not_called()
-
-	@patch('media_api.session')
-	def test_race_condition_409_retry_fails(self, mock_session):
-		"""POST returns 409 but retry GET also finds nothing — raises exception."""
-		mock_get = MagicMock()
-		mock_get.json.return_value = {"albums": []}
-		mock_session.get.return_value = mock_get
-
-		mock_post = MagicMock()
-		mock_post.status_code = 409
-		mock_session.post.return_value = mock_post
-
-		with self.assertRaises(Exception) as ctx:
-			lookupOrCreateAlbum("Missing Album")
-
-		self.assertIn("Missing Album", str(ctx.exception))
 
 
 if __name__ == '__main__':

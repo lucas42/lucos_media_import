@@ -2,7 +2,7 @@ import os, sys, urllib
 import io
 io.DEFAULT_BUFFER_SIZE = 8192 # Workaround for fingerprints to be consistent with pre-3.14 versions of python
 import taglib, acoustid
-from media_api import insertTrack, lookupOrCreateAlbum
+from media_api import insertTrack
 
 
 ## Make sure required environment varibles are set
@@ -67,7 +67,4 @@ def scan_insert_file(path):
 	trackdata = scan_file(path)
 	if trackdata is None:
 		return
-	if "album" in trackdata.get("tags", {}):
-		album_name = trackdata["tags"]["album"][0]["name"]
-		trackdata["tags"]["album"] = [lookupOrCreateAlbum(album_name)]
 	insertTrack(trackdata)
