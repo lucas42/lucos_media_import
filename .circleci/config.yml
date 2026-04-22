@@ -16,13 +16,14 @@ workflows:
   build-deploy:
     jobs:
       - test
-      - lucos/build-multiplatform:
+      - lucos/build:
+          platform: "linux/amd64,linux/arm64"
           serial-group: << pipeline.project.slug >>/build
       - lucos/deploy-xwing:
-          serial-group: << pipeline.project.slug >>/deploy-xwing
+          serial-group: deploy-xwing
           requires:
             - test
-            - lucos/build-multiplatform
+            - lucos/build
           filters:
             branches:
               only:
