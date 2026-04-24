@@ -26,6 +26,8 @@ def scan_file(path):
 		value = " & ".join(values)
 		if key not in ["title", "album", "artist", "year", "genre", "comment", "lyrics"]:
 			continue
+		if not value:
+			continue
 		tags[key] = [{"name": value}]
 
 	# If there's no title in the ID3 tags, default to filename (ignoring extension)

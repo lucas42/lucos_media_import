@@ -76,7 +76,6 @@ testcases = [
 			'tags': {
 				'title': [{'name': 'A Testing Band'}],
 				'artist': [{'name': 'The Very Camp Band'}],
-				'comment': [{'name': ''}],
 				'provenance': [{'name': 'bandcamp'}],
 			},
 			'url': "http://example.org/media_library/test_tracks/ceol srl/bandcamp/A Testing Band.mp3",
