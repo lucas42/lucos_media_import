@@ -41,4 +41,4 @@ def insertTrack(trackdata):
 	if (trackAction == "noChange"):
 		log("No change for track " + url, debug=True)
 	else:
-		log(trackAction + " " + url)
+		log("{} {}".format(trackAction, url))
