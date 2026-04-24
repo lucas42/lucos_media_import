@@ -38,7 +38,7 @@ def insertTrack(trackdata):
 		log("Bad Request: "+trackresult.text, error=True)
 	trackresult.raise_for_status()
 	trackAction = trackresult.headers.get("Track-Action")
-	if (trackAction == "noChange"):
+	if (trackAction in (None, "noChange")):
 		log("No change for track " + url, debug=True)
 	else:
 		log(trackAction + " " + url)
