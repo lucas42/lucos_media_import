@@ -207,6 +207,14 @@ class TestCheckpoint(unittest.TestCase):
 		result = load_checkpoint()
 		self.assertEqual(result, {"root_files_done": False, "completed_dirs": []})
 
+	def test_load_returns_empty_on_corrupt_file(self):
+		"""load_checkpoint returns a fresh empty checkpoint when the file is corrupt (e.g. truncated by a mid-write SIGKILL)."""
+		filepath = self._checkpoint_path()
+		with open(filepath, "w") as f:
+			f.write("")  # zero-byte / invalid JSON
+		result = load_checkpoint()
+		self.assertEqual(result, {"root_files_done": False, "completed_dirs": []})
+
 
 if __name__ == '__main__':
 	unittest.main()

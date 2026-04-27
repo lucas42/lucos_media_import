@@ -11,7 +11,7 @@ def load_checkpoint():
 	try:
 		with open(_checkpoint_file(), "r") as f:
 			return json.load(f)
-	except FileNotFoundError:
+	except (FileNotFoundError, json.JSONDecodeError):
 		return {"root_files_done": False, "completed_dirs": []}
 
 
