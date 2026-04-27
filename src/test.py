@@ -1,5 +1,5 @@
 #! /usr/local/bin/python3
-import os, traceback, unittest
+import json, os, tempfile, traceback, unittest
 from unittest.mock import patch, MagicMock
 
 # Set the media prefix to a known value for testing
@@ -149,6 +149,63 @@ class TestScanInsertFileAlbum(unittest.TestCase):
 		"""Non-audio files result in insertTrack not being called."""
 		scan_insert_file("test_tracks/lockdown-compositions.jpg")
 		mock_insert.assert_not_called()
+
+
+from checkpoint import load_checkpoint, save_checkpoint, clear_checkpoint
+
+
+class TestCheckpoint(unittest.TestCase):
+	"""Tests for the on-disk checkpoint module used by the resumable import scan."""
+
+	def setUp(self):
+		self.tmpdir = tempfile.TemporaryDirectory()
+		self.env_patch = patch.dict(os.environ, {"STATE_DIR": self.tmpdir.name})
+		self.env_patch.start()
+
+	def tearDown(self):
+		self.env_patch.stop()
+		self.tmpdir.cleanup()
+
+	def _checkpoint_path(self):
+		return os.path.join(self.tmpdir.name, "import_checkpoint.json")
+
+	def test_load_returns_empty_when_no_file(self):
+		"""load_checkpoint returns a fresh empty checkpoint when no file exists."""
+		result = load_checkpoint()
+		self.assertEqual(result, {"root_files_done": False, "completed_dirs": []})
+
+	def test_save_and_load_roundtrip(self):
+		"""save_checkpoint persists data that load_checkpoint can recover."""
+		checkpoint = {"root_files_done": True, "completed_dirs": ["Albums", "Singles"]}
+		save_checkpoint(checkpoint)
+		loaded = load_checkpoint()
+		self.assertEqual(loaded, checkpoint)
+
+	def test_save_creates_state_dir_if_missing(self):
+		"""save_checkpoint creates the state directory if it doesn't exist yet."""
+		nested_dir = os.path.join(self.tmpdir.name, "nested", "state")
+		with patch.dict(os.environ, {"STATE_DIR": nested_dir}):
+			checkpoint = {"root_files_done": False, "completed_dirs": []}
+			save_checkpoint(checkpoint)
+			self.assertTrue(os.path.isfile(os.path.join(nested_dir, "import_checkpoint.json")))
+
+	def test_clear_removes_checkpoint_file(self):
+		"""clear_checkpoint removes the checkpoint file."""
+		save_checkpoint({"root_files_done": True, "completed_dirs": []})
+		self.assertTrue(os.path.isfile(self._checkpoint_path()))
+		clear_checkpoint()
+		self.assertFalse(os.path.isfile(self._checkpoint_path()))
+
+	def test_clear_does_not_raise_when_no_file(self):
+		"""clear_checkpoint is safe to call when no checkpoint file exists."""
+		clear_checkpoint()  # should not raise
+
+	def test_load_after_clear_returns_empty(self):
+		"""After clear_checkpoint, load_checkpoint returns a fresh empty checkpoint."""
+		save_checkpoint({"root_files_done": True, "completed_dirs": ["Albums"]})
+		clear_checkpoint()
+		result = load_checkpoint()
+		self.assertEqual(result, {"root_files_done": False, "completed_dirs": []})
 
 
 if __name__ == '__main__':

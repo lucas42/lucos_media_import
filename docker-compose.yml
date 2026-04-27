@@ -4,6 +4,7 @@ services:
     container_name: lucos_media_import
     volumes:
       - "media:/medlib/ceol srl"
+      - "state:/var/state"
     environment:
       - MEDIA_API
       - MEDIA_DIRECTORY=/medlib/ceol srl
@@ -34,3 +35,4 @@ volumes:
       type: nfs
       o: "addr=aurora.local,ro,nolock,hard,intr,retry=3"
       device: ":/medlib/ceol srl"
+  state:
