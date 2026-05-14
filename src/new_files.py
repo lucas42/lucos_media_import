@@ -45,4 +45,4 @@ for root, dirs, files in os.walk(dirpath):
 for file in recent_files:
 	scan_insert_file(file)
 
-updateScheduleTracker(success=(errorCount == 0), message="New files import encountered "+str(errorCount)+" errors", system="lucos_media_import", job_name="new_files", frequency=60)
+updateScheduleTracker(success=(errorCount == 0), message="New files import encountered "+str(errorCount)+" errors", job_name="new_files", frequency=60)

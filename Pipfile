@@ -7,5 +7,6 @@ name = "pypi"
 pytaglib = "*"
 requests = "*"
 pyacoustid = "*"
+lucos-schedule-tracker-pythonclient = ">=2.0.0"
 
 [dev-packages]
