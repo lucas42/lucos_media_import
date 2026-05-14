@@ -6,9 +6,10 @@ if not SCHEDULE_TRACKER_ENDPOINT:
 	exit("SCHEDULE_TRACKER_ENDPOINT environment variable not set - needs to be the URL of a running lucos_contacts instance.")
 
 # Inform the schedule tracker that the job is complete
-def updateScheduleTracker(success=True, message=None, system="lucos_media_import", frequency=1):
+def updateScheduleTracker(success=True, message=None, system="lucos_media_import", job_name=None, frequency=1):
 	payload = {
 		"system": system,
+		"job_name": job_name,
 		"frequency": frequency,
 		"status": "success" if success else "error",
 		"message": message,
