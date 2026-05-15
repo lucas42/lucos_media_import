@@ -6,6 +6,7 @@ services:
       - "media:/medlib/ceol srl"
       - "state:/var/state"
     environment:
+      - SYSTEM
       - MEDIA_API
       - MEDIA_DIRECTORY=/medlib/ceol srl
       - MEDIA_PREFIX

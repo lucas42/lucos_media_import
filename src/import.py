@@ -40,7 +40,7 @@ errorCount = 0
 def handle_sigterm(signum, frame):
 	print("["+datetime.now().isoformat()+"] SIGTERM received — flushing checkpoint and exiting", file=sys.stderr)
 	save_checkpoint(checkpoint)
-	updateScheduleTracker(success=False, message="Import interrupted by SIGTERM after "+str(errorCount)+" errors", frequency=(7 * 24 * 60 * 60))
+	updateScheduleTracker(success=False, message="Import interrupted by SIGTERM after "+str(errorCount)+" errors", job_name="all_files", frequency=(7 * 24 * 60 * 60))
 	os.remove("import.lock")
 	sys.exit(0)
 
@@ -107,6 +107,6 @@ for top_dir in top_level_entries:
 # Clean completion: clear the checkpoint so the next run starts fresh,
 # and post result to schedule-tracker.
 clear_checkpoint()
-updateScheduleTracker(success=(errorCount == 0), message="Import encountered "+str(errorCount)+" errors", frequency=(7 * 24 * 60 * 60))
+updateScheduleTracker(success=(errorCount == 0), message="Import encountered "+str(errorCount)+" errors", job_name="all_files", frequency=(7 * 24 * 60 * 60))
 
 os.remove("import.lock")
