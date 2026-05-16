@@ -14,6 +14,7 @@ services:
       - LOGANNE_ENDPOINT
       - TRACK_KEY
       - SCHEDULE_TRACKER_ENDPOINT
+      - STATE_DIR
     image: lucas42/lucos_media_import:${VERSION:-latest}
     restart: always
     healthcheck:
