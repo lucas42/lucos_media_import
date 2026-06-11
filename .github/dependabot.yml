@@ -24,6 +24,16 @@ updates:
     open-pull-requests-limit: 10
     allow:
       - dependency-type: all
+    ignore:
+      - dependency-name: "python"
+        versions:
+          # Base image is python:3.14 (no variant suffix). The Dependabot
+          # normalised form for bare Python pre-releases is inferred as
+          # *.pre.{prerelease_letter} (no variant segment). If this fails
+          # silently, fall back to per-series range syntax from lucos_backups#186.
+          - "*.pre.a"   # alpha
+          - "*.pre.b"   # beta
+          - "*.pre.rc*" # release candidate
     groups:
       minor-and-patch:
         update-types:
