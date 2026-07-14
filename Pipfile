@@ -7,7 +7,7 @@ name = "pypi"
 pytaglib = "*"
 requests = "*"
 pyacoustid = "*"
-lucos-schedule-tracker-pythonclient = ">=2.0.5"
+lucos-schedule-tracker-pythonclient = ">=2.0.6"
 
 # Workaround for https://github.com/beetbox/audioread/issues/144 to enable running on python 3.13+
 standard-aifc = "*"
