@@ -1,5 +1,5 @@
 #! /usr/local/bin/python3
-import json, os, tempfile, traceback, unittest
+import json, os, runpy, shutil, tempfile, traceback, unittest
 from unittest.mock import patch, MagicMock
 
 # Set the media prefix to a known value for testing
@@ -9,6 +9,11 @@ os.environ["MEDIA_PREFIX"] = "http://example.org/media_library/"
 # (Shouldn't actually be called within logic tests)
 os.environ["MEDIA_API"] = "http://localhost:000/null"
 os.environ["KEY_LUCOS_MEDIA_METADATA_API"] = "invalidkey"
+
+# Set SYSTEM and SCHEDULE_TRACKER_ENDPOINT to broken values so schedule_tracker imports cleanly
+# (Shouldn't actually be called — updateScheduleTracker is mocked in tests that exercise it)
+os.environ["SYSTEM"] = "lucos_media_import"
+os.environ["SCHEDULE_TRACKER_ENDPOINT"] = "http://localhost:000/v2/report-status"
 
 # Units under test
 from logic import scan_file, scan_insert_file
@@ -149,6 +154,38 @@ class TestScanInsertFileAlbum(unittest.TestCase):
 		"""Non-audio files result in insertTrack not being called."""
 		scan_insert_file("test_tracks/lockdown-compositions.jpg")
 		mock_insert.assert_not_called()
+
+
+class TestNewFilesContinuesAfterScanError(unittest.TestCase):
+	"""Tests that the new_files.py scan loop keeps processing after one file fails (#186)."""
+
+	def setUp(self):
+		self.tmpdir = tempfile.TemporaryDirectory()
+		# Fresh copies so ctime is "now" and both files pass new_files.py's 2-minute recency check.
+		shutil.copy("test_tracks/Empty.mp3", os.path.join(self.tmpdir.name, "Empty.mp3"))
+		shutil.copy("test_tracks/A Testing Day.mp3", os.path.join(self.tmpdir.name, "A Testing Day.mp3"))
+
+	def tearDown(self):
+		self.tmpdir.cleanup()
+
+	@patch('schedule_tracker.updateScheduleTracker')
+	@patch('logic.insertTrack')
+	def test_good_file_imported_despite_earlier_scan_error(self, mock_insert, mock_tracker):
+		"""A file that raises during scan_insert_file (Empty.mp3) doesn't stop a later file being imported."""
+		with patch.dict(os.environ, {"MEDIA_DIRECTORY": self.tmpdir.name}):
+			runpy.run_path("new_files.py", run_name="new_files_under_test")
+		mock_insert.assert_called_once()
+		trackdata = mock_insert.call_args[0][0]
+		self.assertEqual(trackdata["tags"]["title"], [{"name": "A Testing Day"}])
+
+	@patch('schedule_tracker.updateScheduleTracker')
+	@patch('logic.insertTrack')
+	def test_scan_error_reported_as_failure(self, mock_insert, mock_tracker):
+		"""A scan error is counted and reported to schedule-tracker as a failure, not silently swallowed."""
+		with patch.dict(os.environ, {"MEDIA_DIRECTORY": self.tmpdir.name}):
+			runpy.run_path("new_files.py", run_name="new_files_under_test")
+		mock_tracker.assert_called_once()
+		self.assertEqual(mock_tracker.call_args.kwargs["success"], False)
 
 
 from checkpoint import load_checkpoint, save_checkpoint, clear_checkpoint
