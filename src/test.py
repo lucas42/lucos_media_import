@@ -340,6 +340,40 @@ class TestImportCheckpointsWithinTopLevelDir(unittest.TestCase):
 		self.assertTrue("Yes" in scanned_urls[0])
 		self.assertFalse(os.path.exists(self._checkpoint_path()), "reaching the end of the scan clears the checkpoint")
 
+	@patch('schedule_tracker.updateScheduleTracker')
+	@patch('loganne.loganneRequest')
+	@patch('logic.insertTrack')
+	def test_new_earlier_sorting_dir_does_not_clobber_in_progress_dir_checkpoint(self, mock_insert, mock_loganne, mock_tracker):
+		"""A new top-level directory that sorts before the in-progress one (e.g. `ambient` before `artists`) must not
+		overwrite current_dir and discard the in-progress directory's completed_subdirs (regression for review feedback
+		on #188 — the fix processes the checkpointed in-progress directory first regardless of alphabetical order)."""
+		artists = os.path.join(self.media_dir, "artists")
+		os.makedirs(os.path.join(artists, "Slade"))
+		os.makedirs(os.path.join(artists, "Yes"))
+		shutil.copy("test_tracks/A Testing Day.mp3", os.path.join(artists, "root-track.mp3"))
+		shutil.copy("test_tracks/A Testing Day.mp3", os.path.join(artists, "Slade", "track.mp3"))
+		shutil.copy("test_tracks/A Testing Day.mp3", os.path.join(artists, "Yes", "track.mp3"))
+
+		# A brand new top-level directory added to the library since the interrupted run — sorts before "artists".
+		ambient = os.path.join(self.media_dir, "ambient")
+		os.makedirs(ambient)
+		shutil.copy("test_tracks/A Testing Day.mp3", os.path.join(ambient, "track.mp3"))
+
+		with open(self._checkpoint_path(), "w") as f:
+			json.dump({
+				"root_files_done": True,
+				"completed_dirs": [],
+				"current_dir": {"name": "artists", "root_files_done": True, "completed_subdirs": ["Slade"]},
+			}, f)
+
+		runpy.run_path("import.py", run_name="import_under_test")
+
+		scanned_urls = [call.args[0]["url"] for call in mock_insert.call_args_list]
+		self.assertEqual(len(scanned_urls), 2, "the already-completed Slade subdir must not be rescanned")
+		self.assertTrue(any("ambient" in u for u in scanned_urls), "the new directory should still be scanned")
+		self.assertTrue(any("Yes" in u for u in scanned_urls), "the remaining subdir of the in-progress directory should be scanned")
+		self.assertFalse(os.path.exists(self._checkpoint_path()), "reaching the end of the scan clears the checkpoint")
+
 
 if __name__ == '__main__':
 	unittest.main()

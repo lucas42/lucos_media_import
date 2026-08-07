@@ -65,6 +65,14 @@ else:
 # Get top-level entries in sorted order (deterministic, so resume skips the right dirs)
 top_level_entries = sorted([e for e in os.listdir(dirpath) if not e.startswith('.')])
 
+# Resume the directory an interrupted run was partway through first, regardless of
+# where it now falls alphabetically — a new top-level directory appearing between
+# runs must not be allowed to clobber its in-progress subdirectory checkpoint (#173).
+in_progress_name = checkpoint["current_dir"]["name"] if checkpoint["current_dir"] else None
+if in_progress_name in top_level_entries:
+	top_level_entries.remove(in_progress_name)
+	top_level_entries.insert(0, in_progress_name)
+
 # Step 1: process files directly in the root directory (if not already done)
 if not checkpoint["root_files_done"]:
 	for name in top_level_entries:
