@@ -43,6 +43,10 @@ for root, dirs, files in os.walk(dirpath):
 
 # Scan the files after building the recent list, so time spent scanning doesn't cause some files to no longer be classed as recent
 for file in recent_files:
-	scan_insert_file(file)
+	try:
+		scan_insert_file(file)
+	except Exception as error:
+		print("\033[91m ["+datetime.now().isoformat()+"] "+type(error).__name__ + " " + str(error) + " " + file + "\033[0m", file=sys.stderr)
+		errorCount += 1
 
 updateScheduleTracker(success=(errorCount == 0), message="New files import encountered "+str(errorCount)+" errors", job_name="new_files", frequency=60)
