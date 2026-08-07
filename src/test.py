@@ -15,6 +15,10 @@ os.environ["KEY_LUCOS_MEDIA_METADATA_API"] = "invalidkey"
 os.environ["SYSTEM"] = "lucos_media_import"
 os.environ["SCHEDULE_TRACKER_ENDPOINT"] = "http://localhost:000/v2/report-status"
 
+# Set LOGANNE_ENDPOINT to a broken value so loganne imports cleanly
+# (Shouldn't actually be called — loganneRequest is mocked in tests that exercise it)
+os.environ["LOGANNE_ENDPOINT"] = "http://localhost:000/events"
+
 # Units under test
 from logic import scan_file, scan_insert_file
 
@@ -209,14 +213,27 @@ class TestCheckpoint(unittest.TestCase):
 	def test_load_returns_empty_when_no_file(self):
 		"""load_checkpoint returns a fresh empty checkpoint when no file exists."""
 		result = load_checkpoint()
-		self.assertEqual(result, {"root_files_done": False, "completed_dirs": []})
+		self.assertEqual(result, {"root_files_done": False, "completed_dirs": [], "current_dir": None})
 
 	def test_save_and_load_roundtrip(self):
 		"""save_checkpoint persists data that load_checkpoint can recover."""
-		checkpoint = {"root_files_done": True, "completed_dirs": ["Albums", "Singles"]}
+		checkpoint = {
+			"root_files_done": True,
+			"completed_dirs": ["Albums", "Singles"],
+			"current_dir": {"name": "Compilations", "root_files_done": True, "completed_subdirs": ["A"]},
+		}
 		save_checkpoint(checkpoint)
 		loaded = load_checkpoint()
 		self.assertEqual(loaded, checkpoint)
+
+	def test_load_defaults_current_dir_for_pre_173_checkpoint(self):
+		"""A checkpoint written before #173 (no current_dir key) loads cleanly, defaulting current_dir to None."""
+		filepath = self._checkpoint_path()
+		os.makedirs(os.path.dirname(filepath), exist_ok=True)
+		with open(filepath, "w") as f:
+			json.dump({"root_files_done": True, "completed_dirs": ["Xmas"]}, f)
+		result = load_checkpoint()
+		self.assertEqual(result, {"root_files_done": True, "completed_dirs": ["Xmas"], "current_dir": None})
 
 	def test_save_creates_state_dir_if_missing(self):
 		"""save_checkpoint creates the state directory if it doesn't exist yet."""
@@ -242,7 +259,7 @@ class TestCheckpoint(unittest.TestCase):
 		save_checkpoint({"root_files_done": True, "completed_dirs": ["Albums"]})
 		clear_checkpoint()
 		result = load_checkpoint()
-		self.assertEqual(result, {"root_files_done": False, "completed_dirs": []})
+		self.assertEqual(result, {"root_files_done": False, "completed_dirs": [], "current_dir": None})
 
 	def test_load_returns_empty_on_corrupt_file(self):
 		"""load_checkpoint returns a fresh empty checkpoint when the file is corrupt (e.g. truncated by a mid-write SIGKILL)."""
@@ -250,7 +267,78 @@ class TestCheckpoint(unittest.TestCase):
 		with open(filepath, "w") as f:
 			f.write("")  # zero-byte / invalid JSON
 		result = load_checkpoint()
-		self.assertEqual(result, {"root_files_done": False, "completed_dirs": []})
+		self.assertEqual(result, {"root_files_done": False, "completed_dirs": [], "current_dir": None})
+
+
+class TestImportCheckpointsWithinTopLevelDir(unittest.TestCase):
+	"""Tests for below-top-level-directory checkpointing in import.py (#173): a top-level
+	directory's own loose root files and each first-level subdirectory are checkpointed
+	independently, so an oversized directory (e.g. `artists`) makes and keeps forward
+	progress across interrupted runs instead of restarting from scratch every time."""
+
+	def setUp(self):
+		self.tmpdir = tempfile.TemporaryDirectory()
+		self.media_dir = os.path.join(self.tmpdir.name, "media")
+		self.state_dir = os.path.join(self.tmpdir.name, "state")
+		os.makedirs(self.media_dir)
+		os.makedirs(self.state_dir)
+		self.env_patch = patch.dict(os.environ, {"MEDIA_DIRECTORY": self.media_dir, "STATE_DIR": self.state_dir})
+		self.env_patch.start()
+
+	def tearDown(self):
+		self.env_patch.stop()
+		self.tmpdir.cleanup()
+		lockfile = os.path.join(os.getcwd(), "import.lock")
+		if os.path.exists(lockfile):
+			os.remove(lockfile)
+
+	def _checkpoint_path(self):
+		return os.path.join(self.state_dir, "import_checkpoint.json")
+
+	@patch('schedule_tracker.updateScheduleTracker')
+	@patch('loganne.loganneRequest')
+	@patch('logic.insertTrack')
+	def test_loose_root_files_and_subdirs_all_scanned_and_checkpoint_cleared(self, mock_insert, mock_loganne, mock_tracker):
+		"""A top-level dir's own loose root file and its subdirectories are all scanned in one run, which then clears the checkpoint."""
+		artists = os.path.join(self.media_dir, "artists")
+		os.makedirs(os.path.join(artists, "Slade"))
+		shutil.copy("test_tracks/A Testing Day.mp3", os.path.join(artists, "root-track.mp3"))
+		shutil.copy("test_tracks/A Testing Day.mp3", os.path.join(artists, "Slade", "track.mp3"))
+
+		runpy.run_path("import.py", run_name="import_under_test")
+
+		scanned_urls = [call.args[0]["url"] for call in mock_insert.call_args_list]
+		self.assertEqual(len(scanned_urls), 2)
+		self.assertTrue(any("root-track.mp3" in u for u in scanned_urls))
+		self.assertTrue(any("Slade" in u for u in scanned_urls))
+		self.assertFalse(os.path.exists(self._checkpoint_path()), "clean completion clears the checkpoint")
+		mock_tracker.assert_called_with(success=True, message=unittest.mock.ANY, job_name="all_files", frequency=7 * 24 * 60 * 60)
+
+	@patch('schedule_tracker.updateScheduleTracker')
+	@patch('loganne.loganneRequest')
+	@patch('logic.insertTrack')
+	def test_resume_skips_completed_subdir_but_scans_the_remaining_one(self, mock_insert, mock_loganne, mock_tracker):
+		"""A checkpoint left mid-way through a top-level dir's subdirectories is honoured on resume — the completed subdir isn't rescanned."""
+		artists = os.path.join(self.media_dir, "artists")
+		os.makedirs(os.path.join(artists, "Slade"))
+		os.makedirs(os.path.join(artists, "Yes"))
+		shutil.copy("test_tracks/A Testing Day.mp3", os.path.join(artists, "root-track.mp3"))
+		shutil.copy("test_tracks/A Testing Day.mp3", os.path.join(artists, "Slade", "track.mp3"))
+		shutil.copy("test_tracks/A Testing Day.mp3", os.path.join(artists, "Yes", "track.mp3"))
+
+		with open(self._checkpoint_path(), "w") as f:
+			json.dump({
+				"root_files_done": True,
+				"completed_dirs": [],
+				"current_dir": {"name": "artists", "root_files_done": True, "completed_subdirs": ["Slade"]},
+			}, f)
+
+		runpy.run_path("import.py", run_name="import_under_test")
+
+		scanned_urls = [call.args[0]["url"] for call in mock_insert.call_args_list]
+		self.assertEqual(len(scanned_urls), 1, "only the not-yet-completed subdir should be scanned")
+		self.assertTrue("Yes" in scanned_urls[0])
+		self.assertFalse(os.path.exists(self._checkpoint_path()), "reaching the end of the scan clears the checkpoint")
 
 
 if __name__ == '__main__':

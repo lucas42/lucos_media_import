@@ -31,7 +31,7 @@ lockfile.close()
 
 # Load checkpoint — resume from where a previous interrupted run left off
 checkpoint = load_checkpoint()
-is_resuming = checkpoint["root_files_done"] or len(checkpoint["completed_dirs"]) > 0
+is_resuming = checkpoint["root_files_done"] or len(checkpoint["completed_dirs"]) > 0 or checkpoint["current_dir"] is not None
 
 errorCount = 0
 
@@ -79,9 +79,12 @@ if not checkpoint["root_files_done"]:
 	checkpoint["root_files_done"] = True
 	save_checkpoint(checkpoint)
 
-# Step 2: walk each top-level subdirectory, checkpointing after each one completes.
-# Files added/removed mid-traversal are benign for a "find new files" pass — they'll
-# be caught (or ignored) on the following week's traversal.
+# Step 2: walk each top-level subdirectory. Within a top-level directory, checkpoint
+# below top-level granularity — its own loose root files, then each first-level
+# subdirectory — so an oversized directory (e.g. `artists`) makes and keeps forward
+# progress across interrupted runs instead of restarting from scratch every time it's
+# reached. Files added/removed mid-traversal are benign for a "find new files" pass —
+# they'll be caught (or ignored) on the following week's traversal. See #173.
 for top_dir in top_level_entries:
 	top_dir_path = os.path.join(dirpath, top_dir)
 	if not os.path.isdir(top_dir_path):
@@ -89,19 +92,53 @@ for top_dir in top_level_entries:
 	if top_dir in checkpoint["completed_dirs"]:
 		print("["+datetime.now().isoformat()+"] Skipping already-completed directory: "+top_dir)
 		continue
+
+	current = checkpoint["current_dir"]
+	if not current or current["name"] != top_dir:
+		current = {"name": top_dir, "root_files_done": False, "completed_subdirs": []}
+		checkpoint["current_dir"] = current
+
 	print("["+datetime.now().isoformat()+"] Processing directory: "+top_dir)
-	for root, dirs, files in os.walk(top_dir_path):
-		# Ignore hidden files and directories
-		files = [f for f in files if not f[0] == '.']
-		dirs[:] = [d for d in dirs if not d[0] == '.']
-		for name in files:
+
+	# Step 2a: files directly inside this top-level directory (not in any subdirectory) —
+	# mirrors the library-root handling above, since a directory can hold a large number
+	# of loose files with no subdirectories at all (e.g. `bandcamp`, `songbird`).
+	if not current["root_files_done"]:
+		for name in sorted(os.listdir(top_dir_path)):
+			if name.startswith('.'):
+				continue
+			path = os.path.join(top_dir_path, name)
+			if not os.path.isfile(path):
+				continue
 			try:
-				path = os.path.join(root, name)
 				scan_insert_file(path)
 			except Exception as error:
 				print("\033[91m ["+datetime.now().isoformat()+"] "+type(error).__name__ + " " + str(error) + " " + path + "\033[0m", file=sys.stderr)
 				errorCount += 1
+		current["root_files_done"] = True
+		save_checkpoint(checkpoint)
+
+	# Step 2b: each first-level subdirectory, walked (and checkpointed) as one unit
+	subdirs = sorted(e for e in os.listdir(top_dir_path) if not e.startswith('.') and os.path.isdir(os.path.join(top_dir_path, e)))
+	for subdir in subdirs:
+		if subdir in current["completed_subdirs"]:
+			continue
+		for root, dirs, files in os.walk(os.path.join(top_dir_path, subdir)):
+			# Ignore hidden files and directories
+			files = [f for f in files if not f[0] == '.']
+			dirs[:] = [d for d in dirs if not d[0] == '.']
+			for name in files:
+				try:
+					path = os.path.join(root, name)
+					scan_insert_file(path)
+				except Exception as error:
+					print("\033[91m ["+datetime.now().isoformat()+"] "+type(error).__name__ + " " + str(error) + " " + path + "\033[0m", file=sys.stderr)
+					errorCount += 1
+		current["completed_subdirs"].append(subdir)
+		save_checkpoint(checkpoint)
+
 	checkpoint["completed_dirs"].append(top_dir)
+	checkpoint["current_dir"] = None
 	save_checkpoint(checkpoint)
 
 # Clean completion: clear the checkpoint so the next run starts fresh,
