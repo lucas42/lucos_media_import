@@ -10,9 +10,17 @@ def load_checkpoint():
 	"""Load checkpoint from disk, or return an empty checkpoint for a fresh start."""
 	try:
 		with open(_checkpoint_file(), "r") as f:
-			return json.load(f)
+			checkpoint = json.load(f)
 	except (FileNotFoundError, json.JSONDecodeError):
-		return {"root_files_done": False, "completed_dirs": []}
+		checkpoint = {}
+	checkpoint.setdefault("root_files_done", False)
+	checkpoint.setdefault("completed_dirs", [])
+	# Progress within the top-level directory currently being scanned, below
+	# per-top-level-directory granularity (#173). None when no directory is in
+	# progress. setdefault keeps checkpoints written before this key existed loading
+	# cleanly, resuming that in-progress directory from scratch under the new scheme.
+	checkpoint.setdefault("current_dir", None)
+	return checkpoint
 
 
 def save_checkpoint(checkpoint):
